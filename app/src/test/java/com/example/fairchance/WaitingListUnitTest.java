@@ -2,6 +2,7 @@ package com.example.fairchance;
 
 import com.example.fairchance.domain.WaitingListManager;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -60,5 +61,28 @@ public class WaitingListUnitTest {
         assertNotNull(replacement);
         assertTrue(waitingList.getWaitingList().contains(replacement));
         assertFalse(selected.contains(replacement));
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void waitingListSnapshot_cannotMutateManager() {
+        waitingList.join("user1");
+        waitingList.getWaitingList().add("user2");
+    }
+
+    @Test
+    public void nullInputs_areHandledSafely() {
+        WaitingListManager initializedWithNull = new WaitingListManager(null);
+        initializedWithNull.join(null);
+
+        assertEquals(0, initializedWithNull.count());
+        assertEquals(Collections.emptyList(), initializedWithNull.getWaitingList());
+        assertNull(initializedWithNull.drawReplacement(Arrays.asList("user1")));
+    }
+
+    @Test
+    public void nullSelection_treatsEveryoneAsEligible() {
+        waitingList.join("user1");
+
+        assertEquals("user1", waitingList.drawReplacement(null));
     }
 }
