@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tvUpdateEventTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Update Event"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp" />
+
+        <ImageView
+            android:id="@+id/ivEventPoster"
+            android:layout_width="0dp"
+            android:layout_height="200dp"
+            android:background="#E0E0E0"
+            android:src="@android:drawable/ic_menu_gallery"
+            android:scaleType="centerCrop"
+            android:contentDescription="Event Poster"
+            android:layout_marginTop="24dp"
+            app:layout_constraintTop_toBottomOf="@id/tvUpdateEventTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/tvInsertPoster"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Insert event poster or image"
+            android:textSize="14sp"
+            android:textColor="#757575"
+            app:layout_constraintTop_toTopOf="@id/ivEventPoster"
+            app:layout_constraintBottom_toBottomOf="@id/ivEventPoster"
+            app:layout_constraintStart_toStartOf="@id/ivEventPoster"
+            app:layout_constraintEnd_toEndOf="@id/ivEventPoster" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilEventName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Event Name*"
+            android:layout_marginTop="24dp"
+            app:layout_constraintTop_toBottomOf="@id/ivEventPoster"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEventName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:hint="Enter name of event" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilEventDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Event Description*"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/tilEventName"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEventDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine"
+                android:minLines="3"
+                android:hint="Enter a brief description of the event" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilEventTimeLocation"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Event Time and Location*"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/tilEventDescription"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEventTimeLocation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:hint="Enter event time and location" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilRegistrationDates"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Registration start and end date*"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/tilEventTimeLocation"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etRegistrationDates"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="date"
+                android:hint="Enter dates in YYYY-MM-DD format" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilRegistrationTimes"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Registration start and end time*"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/tilRegistrationDates"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etRegistrationTimes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="time"
+                android:hint="Enter registration times" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <CheckBox
+            android:id="@+id/cbGeolocation"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Enable geolocation requirement for this event?"
+            android:textSize="14sp"
+            android:checked="true"
+            android:layout_marginTop="24dp"
+            app:layout_constraintTop_toBottomOf="@id/tilRegistrationTimes"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <CheckBox
+            android:id="@+id/cbWaitlistLimit"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Set a limit to the number of entrants who can join the waiting list?"
+            android:textSize="14sp"
+            android:checked="true"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/cbGeolocation"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <Button
+            android:id="@+id/btnGenerateQRCode"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Generate QR code"
+            android:textSize="16sp"
+            android:textColor="#000000"
+            android:background="#B2DFDB"
+            android:layout_marginTop="24dp"
+            android:padding="16dp"
+            app:layout_constraintTop_toBottomOf="@id/cbWaitlistLimit"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <Button
+            android:id="@+id/btnSaveChanges"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Save Changes"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            android:background="#4CAF50"
+            android:layout_marginTop="16dp"
+            android:padding="16dp"
+            app:layout_constraintTop_toBottomOf="@id/btnGenerateQRCode"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnCancelChanges" />
+
+        <Button
+            android:id="@+id/btnCancelChanges"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="80dp"
+            android:background="#E0E0E0"
+            android:padding="16dp"
+            android:text="Cancel Changes"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="@id/btnSaveChanges"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/btnSaveChanges"
+            app:layout_constraintTop_toTopOf="@id/btnSaveChanges"
+            app:layout_constraintVertical_bias="0.0" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.core.widget.NestedScrollView>
