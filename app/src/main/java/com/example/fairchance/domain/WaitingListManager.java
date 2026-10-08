@@ -1,6 +1,7 @@
 package com.example.fairchance.domain;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -22,21 +23,23 @@ public class WaitingListManager {
      * Creates a waiting list initialized with existing user IDs.
      */
     public WaitingListManager(List<String> initialList) {
-        this.waitingList = new ArrayList<>(initialList);
+        this.waitingList = initialList == null
+                ? new ArrayList<>()
+                : new ArrayList<>(initialList);
     }
 
     /**
      * Returns the current waiting list.
      */
     public List<String> getWaitingList() {
-        return waitingList;
+        return Collections.unmodifiableList(new ArrayList<>(waitingList));
     }
 
     /**
      * Adds a user if they are not already on the waiting list.
      */
     public void join(String userId) {
-        if (!waitingList.contains(userId)) {
+        if (userId != null && !waitingList.contains(userId)) {
             waitingList.add(userId);
         }
     }
@@ -60,8 +63,11 @@ public class WaitingListManager {
      * or null if no such replacement exists.
      */
     public String drawReplacement(List<String> alreadySelected) {
+        List<String> selected = alreadySelected == null
+                ? Collections.emptyList()
+                : alreadySelected;
         for (String id : waitingList) {
-            if (!alreadySelected.contains(id)) {
+            if (!selected.contains(id)) {
                 return id;
             }
         }
