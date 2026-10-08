@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Poster -->
+        <ImageView
+            android:id="@+id/ivEventImage"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:scaleType="centerCrop"
+            android:background="@android:color/darker_gray"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/btnViewDetails"
+            app:layout_constraintVertical_bias="0" />
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/tvEventName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Event title"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="@android:color/black"
+            app:layout_constraintStart_toEndOf="@id/ivEventImage"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintHorizontal_bias="0"
+            android:layout_marginStart="16dp" />
+
+        <!-- Description -->
+        <TextView
+            android:id="@+id/tvEventDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Short description"
+            android:textSize="14sp"
+            android:textColor="@android:color/black"
+            android:maxLines="2"
+            android:ellipsize="end"
+            app:layout_constraintStart_toStartOf="@id/tvEventName"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvEventName"
+            android:layout_marginTop="4dp" />
+
+        <!-- Organizer name -->
+        <TextView
+            android:id="@+id/tvOrganizer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Organizer: Someone"
+            android:textSize="13sp"
+            android:textColor="@android:color/darker_gray"
+            app:layout_constraintStart_toStartOf="@id/tvEventName"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvEventDescription"
+            android:layout_marginTop="2dp" />
+
+        <!-- View details -->
+        <Button
+            android:id="@+id/btnViewDetails"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:text="View details"
+            android:textAllCaps="false"
+            android:backgroundTint="@color/colorPrimary"
+            android:textColor="@android:color/white"
+            app:layout_constraintStart_toStartOf="@id/tvEventName"
+            app:layout_constraintEnd_toStartOf="@+id/btnRemoveEvent"
+            app:layout_constraintTop_toBottomOf="@id/tvOrganizer"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="8dp" />
+
+        <!-- Remove -->
+        <Button
+            android:id="@+id/btnRemoveEvent"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:text="Remove"
+            android:textAllCaps="false"
+            android:backgroundTint="?attr/colorPrimary"
+            android:textColor="@android:color/white"
+            app:layout_constraintStart_toEndOf="@id/btnViewDetails"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/btnViewDetails"
+            app:layout_constraintBottom_toBottomOf="@id/btnViewDetails" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>

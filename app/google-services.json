@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "43498702191",
+    "project_id": "fair-chance-a2e9c",
+    "storage_bucket": "fair-chance-a2e9c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:43498702191:android:b279f3d9c40ff9b3a3d49a",
+        "android_client_info": {
+          "package_name": "com.example.fairchance"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDY_Q17dFDCsnhmrQYGmNwfwUlgC5pJfbg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

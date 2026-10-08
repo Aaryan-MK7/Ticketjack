@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:startDestination="@id/organizerDashboardFragment">
+
+    <!-- Organizer Dashboard -->
+    <fragment
+        android:id="@+id/organizerDashboardFragment"
+        android:name="com.example.fairchance.ui.fragments.OrganizerDashboardFragment"
+        android:label="Organizer Dashboard">
+
+        <action
+            android:id="@+id/action_organizerDashboard_to_createNewEventFragment"
+            app:destination="@id/createNewEventFragment" />
+
+        <action
+            android:id="@+id/action_organizerDashboard_to_ongoingEventsFragment"
+            app:destination="@id/ongoingEventsFragment" />
+
+        <action
+            android:id="@+id/action_organizerDashboard_to_samplingReplacementFragment"
+            app:destination="@id/samplingReplacementFragment" />
+
+        <action
+            android:id="@+id/action_organizerDashboard_to_profileFragment"
+            app:destination="@id/profileFragment" />
+
+        <action
+            android:id="@+id/action_organizerDashboard_to_guidelinesFragment"
+            app:destination="@id/guidelinesFragment" />
+    </fragment>
+
+    <!-- Destination Fragments -->
+    <fragment
+        android:id="@+id/createNewEventFragment"
+        android:name="com.example.fairchance.ui.fragments.CreateNewEventFragment"
+        android:label="Create New Event" />
+
+    <fragment
+        android:id="@+id/ongoingEventsFragment"
+        android:name="com.example.fairchance.ui.fragments.OngoingEventsFragment"
+        android:label="Ongoing Events" />
+
+    <fragment
+        android:id="@+id/samplingReplacementFragment"
+        android:name="com.example.fairchance.ui.fragments.SamplingReplacementFragment"
+        android:label="Sampling &amp; Replacement" />
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.fairchance.ui.fragments.ProfileFragment"
+        android:label="Profile" />
+
+    <fragment
+        android:id="@+id/guidelinesFragment"
+        android:name="com.example.fairchance.ui.fragments.GuidelinesFragment"
+        android:label="Guidelines" />
+</navigation>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="FCgreen">#4CAF50</color>
+    <color name="FCblue">#2196F3</color>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="light_gray_background">#F5F5F5</color>
+    <color name="entrant_blue_bg">#E3F2FD</color>
+    <color name="entrant_blue_text">#0D47A1</color>
+    <color name="organizer_green_bg">#E8F5E9</color>
+    <color name="organizer_green_text">#1B5E20</color>
+    <color name="admin_gray_bg">#ECEFF1</color>
+    <color name="admin_gray_text">#37474F</color>
+    <color name="card_blue">#1E88E5</color>
+    <color name="card_green">#8BC34A</color>
+    <color name="card_orange">#FF9800</color>
+    <color name="card_purple">#9C27B0</color>
+    <color name="gray">#9E9E9E</color>
+</resources>

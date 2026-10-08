@@ -1,0 +1,28 @@
+# Gradle and Android build output
+.gradle/
+**/build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Machine-local Android configuration
+local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+
+# Firebase tooling and Cloud Functions
+.firebase/
+firebase-debug.log*
+functions/node_modules/
+functions/*.local
+
+# Local environment and signing material
+.env
+.env.*
+*.jks
+*.keystore
+
+# Operating-system metadata
+.DS_Store
