@@ -6,11 +6,11 @@ on:
     branches: [main]
     paths:
       - docs/**
-      - .github/workflows/pages.yml
+      - .github/workflows/project-preview.yml
   pull_request:
     paths:
       - docs/**
-      - .github/workflows/pages.yml
+      - .github/workflows/project-preview.yml
 
 permissions:
   contents: read
