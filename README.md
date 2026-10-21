@@ -1,4 +1,9 @@
 # Ticketjack
+
+[![Project preview](https://github.com/Aaryan-MK7/Ticketjack/actions/workflows/pages.yml/badge.svg)](https://aaryan-mk7.github.io/Ticketjack/)
+
+**[Open the public project preview →](https://aaryan-mk7.github.io/Ticketjack/)**
+
 Ticketjack is an Android application for fair, lottery-based event registration. Instead of rewarding the fastest person to refresh a screen, entrants join an open waiting list; organizers run a transparent draw; selected entrants accept or decline; and the system can draw replacements when needed.
 
 The app supports three roles:
