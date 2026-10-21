@@ -3,7 +3,6 @@ package com.example.fairchance.ui;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -21,7 +20,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.bumptech.glide.Glide;
 import com.example.fairchance.R;
-import com.example.fairchance.data.repository.EventRepository;
+import com.example.fairchance.data.repository.EnrollmentRepository;
+import com.example.fairchance.data.repository.EventCatalogRepository;
 import com.example.fairchance.models.Event;
 import com.example.fairchance.ui.fragments.GuidelinesFragment;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -38,7 +38,8 @@ public class EventDetailsActivity extends AppCompatActivity {
     private static final String TAG = "EventDetailsActivity";
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
 
-    private EventRepository eventRepository;
+    private EventCatalogRepository eventCatalogRepository;
+    private EnrollmentRepository enrollmentRepository;
     private String currentEventId;
     private Event currentEvent;
     private String currentEventStatus = null;
@@ -61,7 +62,8 @@ public class EventDetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_details);
 
-        eventRepository = new EventRepository();
+        eventCatalogRepository = new EventCatalogRepository();
+        enrollmentRepository = new EnrollmentRepository();
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         currentEventId = getIntent().getStringExtra("EVENT_ID");
@@ -130,7 +132,7 @@ public class EventDetailsActivity extends AppCompatActivity {
      */
     private void loadEventDetails() {
         setLoading(true);
-        eventRepository.getEvent(currentEventId, new EventRepository.EventCallback() {
+        eventCatalogRepository.getEvent(currentEventId, new EventCatalogRepository.EventCallback() {
             @Override
             public void onSuccess(Event event) {
                 currentEvent = event;
@@ -156,7 +158,7 @@ public class EventDetailsActivity extends AppCompatActivity {
             waitlistListener.remove();
         }
 
-        waitlistListener = eventRepository.listenToWaitingListCount(currentEventId, new EventRepository.WaitlistCountCallback() {
+        waitlistListener = eventCatalogRepository.observeWaitingListCount(currentEventId, new EventCatalogRepository.CountCallback() {
             @Override
             public void onSuccess(int count) {
                 if (currentEvent != null && currentEvent.getWaitingListLimit() > 0) {
@@ -182,7 +184,7 @@ public class EventDetailsActivity extends AppCompatActivity {
      * Checks current user's status for this event.
      */
     private void checkUserStatus() {
-        eventRepository.checkEventHistoryStatus(currentEventId, new EventRepository.EventHistoryCheckCallback() {
+        eventCatalogRepository.getCurrentUserStatus(currentEventId, new EventCatalogRepository.StatusCallback() {
             @Override
             public void onSuccess(String status) {
                 currentEventStatus = status;
@@ -285,7 +287,7 @@ public class EventDetailsActivity extends AppCompatActivity {
     private void performJoin(@Nullable Double lat, @Nullable Double lng) {
         setButtonLoading(true);
 
-        EventRepository.EventTaskCallback callback = new EventRepository.EventTaskCallback() {
+        EnrollmentRepository.TaskCallback callback = new EnrollmentRepository.TaskCallback() {
             @Override
             public void onSuccess() {
                 setButtonLoading(false);
@@ -306,9 +308,9 @@ public class EventDetailsActivity extends AppCompatActivity {
         };
 
         if (lat != null && lng != null) {
-            eventRepository.joinWaitingListWithLocation(currentEventId, currentEvent, lat, lng, callback);
+            enrollmentRepository.joinWaitingList(currentEventId, lat, lng, callback);
         } else {
-            eventRepository.joinWaitingList(currentEventId, currentEvent, callback);
+            enrollmentRepository.joinWaitingList(currentEventId, null, null, callback);
         }
     }
 
@@ -317,7 +319,7 @@ public class EventDetailsActivity extends AppCompatActivity {
      */
     private void leaveWaitlist() {
         setButtonLoading(true);
-        eventRepository.leaveWaitingList(currentEventId, new EventRepository.EventTaskCallback() {
+        enrollmentRepository.leaveWaitingList(currentEventId, new EnrollmentRepository.TaskCallback() {
             @Override
             public void onSuccess() {
                 setButtonLoading(false);
@@ -378,17 +380,21 @@ public class EventDetailsActivity extends AppCompatActivity {
     private void updateJoinButtonUI() {
         if ("Waiting".equals(currentEventStatus)) {
             btnJoinWaitlist.setText("Leave Waitlist");
-            btnJoinWaitlist.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+            btnJoinWaitlist.setBackgroundTintList(ColorStateList.valueOf(
+                    ContextCompat.getColor(this, R.color.ticketjack_error)
+            ));
             btnJoinWaitlist.setEnabled(true);
         } else if (currentEventStatus == null) {
             btnJoinWaitlist.setText("Join Waitlist");
             btnJoinWaitlist.setBackgroundTintList(
-                    ColorStateList.valueOf(ContextCompat.getColor(this, R.color.FCgreen))
+                    ColorStateList.valueOf(ContextCompat.getColor(this, R.color.ticketjack_primary))
             );
             btnJoinWaitlist.setEnabled(true);
         } else {
             btnJoinWaitlist.setText("You are " + currentEventStatus);
-            btnJoinWaitlist.setBackgroundTintList(ColorStateList.valueOf(Color.GRAY));
+            btnJoinWaitlist.setBackgroundTintList(ColorStateList.valueOf(
+                    ContextCompat.getColor(this, R.color.ticketjack_outline)
+            ));
             btnJoinWaitlist.setEnabled(false);
         }
     }

@@ -19,7 +19,7 @@ import java.util.Locale;
 
 /**
  * Authentication screen for all roles.
- * Supports login/register for organizer/admin and registration for entrants.
+ * Supports organizer login/registration, administrator login, and entrant registration.
  */
 public class AuthActivity extends AppCompatActivity implements AuthRepository.AuthCallback {
 
@@ -74,7 +74,15 @@ public class AuthActivity extends AppCompatActivity implements AuthRepository.Au
             actionButton.setText("Register & Enter");
             isRegisterMode = true;
             updateRegistrationFieldsVisibility(true);
+        } else if (currentRole.equals("admin")) {
+            authTitle.setText("Administrator Login");
+            passwordLayout.setVisibility(View.VISIBLE);
+            toggleButton.setVisibility(View.GONE);
+            actionButton.setText("Login");
+            isRegisterMode = false;
+            updateRegistrationFieldsVisibility(false);
         } else {
+            currentRole = "organizer";
             String roleCap = currentRole.substring(0, 1).toUpperCase(Locale.ROOT) + currentRole.substring(1);
             authTitle.setText(roleCap + " Login");
             passwordLayout.setVisibility(View.VISIBLE);
@@ -89,6 +97,9 @@ public class AuthActivity extends AppCompatActivity implements AuthRepository.Au
      * Switches between login and registration modes.
      */
     private void toggleMode() {
+        if (currentRole.equals("admin")) {
+            return;
+        }
         isRegisterMode = !isRegisterMode;
         String roleCap = currentRole.substring(0, 1).toUpperCase(Locale.ROOT) + currentRole.substring(1);
 

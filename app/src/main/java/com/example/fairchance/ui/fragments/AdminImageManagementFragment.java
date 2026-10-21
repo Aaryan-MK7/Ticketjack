@@ -152,11 +152,7 @@ public class AdminImageManagementFragment extends Fragment
     private void deleteImage(AdminImageItem item) {
         setLoading(true);
 
-        String adminId = FirebaseAuth.getInstance().getCurrentUser() != null
-                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
-                : "unknown-admin";
-
-        repository.deleteImage(item, adminId, new AdminImageRepository.TaskCallback() {
+        repository.deleteImage(item, new AdminImageRepository.TaskCallback() {
             @Override
             public void onSuccess() {
                 setLoading(false);

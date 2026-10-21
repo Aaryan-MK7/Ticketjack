@@ -1,0 +1,136 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function currentUser() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function activeAccount() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && currentUser().data.isActive != false
+        && currentUser().data.roleActive != false;
+    }
+
+    function hasRole(role) {
+      return activeAccount() && currentUser().data.role == role;
+    }
+
+    function isAdmin() {
+      return hasRole("admin");
+    }
+
+    function validEvent(data) {
+      return data.name is string
+        && data.name.size() > 0
+        && data.description is string
+        && data.location is string
+        && data.organizerId is string
+        && data.createdById is string
+        && data.capacity is int
+        && data.capacity > 0
+        && data.capacity <= 10000
+        && data.registrationStart is timestamp
+        && data.registrationEnd is timestamp
+        && data.eventDate is timestamp
+        && data.registrationStart < data.registrationEnd
+        && data.registrationEnd <= data.eventDate;
+    }
+
+    function managesEvent(eventId) {
+      let event = get(/databases/$(database)/documents/events/$(eventId)).data;
+      return isAdmin()
+        || (hasRole("organizer")
+          && (event.organizerId == request.auth.uid || event.createdById == request.auth.uid));
+    }
+
+    match /users/{userId} {
+      allow get: if signedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      allow create: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.role in ["entrant", "organizer"]
+        && request.resource.data.keys().hasAll([
+          "email", "name", "phone", "role", "notificationPreferences"
+        ])
+        && request.resource.data.keys().hasOnly([
+          "email", "name", "phone", "role", "notificationPreferences", "fcmToken"
+        ]);
+      allow update: if activeAccount()
+        && request.auth.uid == userId
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "name", "email", "phone", "notificationPreferences", "fcmToken"
+        ]);
+      allow delete: if false;
+
+      match /eventHistory/{eventId} {
+        allow read: if signedIn() && (request.auth.uid == userId || isAdmin());
+        allow write: if false;
+      }
+    }
+
+    match /events/{eventId} {
+      allow read: if signedIn();
+      allow create: if hasRole("organizer")
+        && request.resource.data.organizerId == request.auth.uid
+        && request.resource.data.createdById == request.auth.uid
+        && validEvent(request.resource.data);
+      allow update: if managesEvent(eventId)
+        && validEvent(request.resource.data)
+        && request.resource.data.organizerId == resource.data.organizerId
+        && request.resource.data.createdById == resource.data.createdById
+        && request.resource.data.capacity == resource.data.capacity;
+      allow delete: if false;
+
+      match /waitingList/{userId} {
+        allow read: if signedIn()
+          && (request.auth.uid == userId || managesEvent(eventId));
+        allow write: if false;
+      }
+
+      match /selected/{userId} {
+        allow read: if signedIn()
+          && (request.auth.uid == userId || managesEvent(eventId));
+        allow write: if false;
+      }
+
+      match /confirmedAttendees/{userId} {
+        allow read: if signedIn()
+          && (request.auth.uid == userId || managesEvent(eventId));
+        allow write: if false;
+      }
+
+      match /cancelled/{userId} {
+        allow read: if signedIn()
+          && (request.auth.uid == userId || managesEvent(eventId));
+        allow write: if false;
+      }
+
+      match /notificationLogs/{logId} {
+        allow read: if managesEvent(eventId);
+        allow write: if false;
+      }
+    }
+
+    match /notificationLogs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /{auditCollection}/{logId} {
+      allow read: if isAdmin()
+        && auditCollection in [
+          "adminRemovalLogs",
+          "eventRemovalLogs",
+          "imageRemovalLogs",
+          "organizerDeactivationLogs"
+        ];
+      allow write: if false;
+    }
+  }
+}

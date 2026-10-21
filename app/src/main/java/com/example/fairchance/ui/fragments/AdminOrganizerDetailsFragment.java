@@ -196,40 +196,14 @@ public class AdminOrganizerDetailsFragment extends Fragment {
     private void performRemoval(String reason) {
         progressBar.setVisibility(View.VISIBLE);
 
-        String adminId = FirebaseAuth.getInstance().getCurrentUser() != null
-                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
-                : "unknown";
-
         authRepository.deactivateOrganizer(organizerId, reason, new AuthRepository.TaskCallback() {
             @Override
             public void onSuccess() {
-
-                eventRepository.deactivateEventsByOrganizer(
-                        organizerId,
-                        adminId,
-                        reason,
-                        new EventRepository.EventTaskCallback() {
-
-                            @Override
-                            public void onSuccess() {
-                                progressBar.setVisibility(View.GONE);
-                                Toast.makeText(requireContext(),
-                                        "Organizer and their events deactivated.",
-                                        Toast.LENGTH_LONG).show();
-                                requireActivity().getOnBackPressedDispatcher().onBackPressed();
-                            }
-
-                            @Override
-                            public void onError(String message) {
-                                progressBar.setVisibility(View.GONE);
-                                Toast.makeText(requireContext(),
-                                        "Organizer removed but failed to deactivate some events: "
-                                                + message,
-                                        Toast.LENGTH_LONG).show();
-                                requireActivity().getOnBackPressedDispatcher().onBackPressed();
-                            }
-                        }
-                );
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(requireContext(),
+                        "Organizer and their events deactivated.",
+                        Toast.LENGTH_LONG).show();
+                requireActivity().getOnBackPressedDispatcher().onBackPressed();
             }
 
             @Override

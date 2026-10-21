@@ -1,0 +1,35 @@
+<resources>
+    <style name="Widget.Ticketjack.Button.Primary" parent="Widget.Material3.Button">
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="cornerRadius">@dimen/ticketjack_button_radius</item>
+    </style>
+
+    <style name="Widget.Ticketjack.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="cornerRadius">@dimen/ticketjack_button_radius</item>
+    </style>
+
+    <style name="Widget.Ticketjack.Button.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="Widget.Ticketjack.Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">@dimen/ticketjack_card_radius</item>
+        <item name="cardElevation">2dp</item>
+    </style>
+
+    <style name="Widget.Ticketjack.TextInput" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">@dimen/ticketjack_field_radius</item>
+        <item name="boxCornerRadiusTopEnd">@dimen/ticketjack_field_radius</item>
+        <item name="boxCornerRadiusBottomStart">@dimen/ticketjack_field_radius</item>
+        <item name="boxCornerRadiusBottomEnd">@dimen/ticketjack_field_radius</item>
+    </style>
+
+    <style name="TextAppearance.Ticketjack.Overline" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+</resources>

@@ -206,7 +206,7 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="#E0E0E0"
+            android:background="@color/ticketjack_surface_variant"
             android:layout_marginBottom="24dp" />
 
         <!-- Management Section title -->
@@ -267,7 +267,7 @@
                         android:layout_height="24dp"
                         android:src="@drawable/ic_chevron_right"
                         android:contentDescription="@string/navigate"
-                        app:tint="#666666" />
+                        app:tint="@color/ticketjack_on_surface_variant" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -312,7 +312,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@drawable/ic_chevron_right"
-                        app:tint="#666666" />
+                        app:tint="@color/ticketjack_on_surface_variant" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -357,7 +357,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@drawable/ic_chevron_right"
-                        app:tint="#666666" />
+                        app:tint="@color/ticketjack_on_surface_variant" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -402,7 +402,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@drawable/ic_chevron_right"
-                        app:tint="#666666" />
+                        app:tint="@color/ticketjack_on_surface_variant" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -447,7 +447,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@drawable/ic_chevron_right"
-                        app:tint="#666666"
+                        app:tint="@color/ticketjack_on_surface_variant"
                         android:contentDescription="@string/navigate" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>

@@ -1,8 +1,29 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+<resources>
     <style name="Base.Theme.FairChance" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/ticketjack_primary</item>
+        <item name="colorOnPrimary">@color/ticketjack_on_primary</item>
+        <item name="colorPrimaryContainer">@color/ticketjack_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/ticketjack_on_primary_container</item>
+        <item name="colorSecondary">@color/ticketjack_secondary</item>
+        <item name="colorOnSecondary">@color/ticketjack_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/ticketjack_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/ticketjack_on_secondary_container</item>
+        <item name="colorTertiary">@color/ticketjack_tertiary</item>
+        <item name="colorTertiaryContainer">@color/ticketjack_tertiary_container</item>
+        <item name="colorError">@color/ticketjack_error</item>
+        <item name="colorErrorContainer">@color/ticketjack_error_container</item>
+        <item name="colorSurface">@color/ticketjack_surface</item>
+        <item name="colorSurfaceVariant">@color/ticketjack_surface_variant</item>
+        <item name="colorOnSurface">@color/ticketjack_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/ticketjack_on_surface_variant</item>
+        <item name="colorOutline">@color/ticketjack_outline</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">@color/ticketjack_surface</item>
+        <item name="android:navigationBarColor">@color/ticketjack_surface</item>
+        <item name="materialButtonStyle">@style/Widget.Ticketjack.Button.Primary</item>
+        <item name="materialCardViewStyle">@style/Widget.Ticketjack.Card</item>
+        <item name="textInputStyle">@style/Widget.Ticketjack.TextInput</item>
     </style>
 
     <style name="Theme.FairChance" parent="Base.Theme.FairChance" />

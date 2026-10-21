@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/ticketjack_surface"
     android:fitsSystemWindows="true">
 
     <ScrollView
@@ -40,7 +41,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="24dp"
+                android:padding="@dimen/ticketjack_screen_padding"
                 android:visibility="visible">
 
                 <TextView
@@ -58,7 +59,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                    android:textColor="@color/FCgreen"
+                    android:textColor="@color/ticketjack_secondary"
                     tools:text="October 10 – 2:30 PM" />
 
                 <TextView
@@ -74,7 +75,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginVertical="16dp"
-                    android:background="@color/light_gray_background" />
+                    android:background="@color/ticketjack_surface_variant" />
 
                 <TextView
                     android:layout_width="match_parent"
@@ -113,7 +114,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="See full guidelines"
-                    android:textColor="@color/FCblue"
+                    android:textColor="@color/ticketjack_primary"
                     android:textStyle="bold"
                     android:clickable="true"
                     android:focusable="true"
@@ -147,7 +148,7 @@
 
                     <Button
                         android:id="@+id/join_waitlist_button"
-                        style="@style/Widget.MaterialComponents.Button"
+                        style="@style/Widget.Ticketjack.Button.Primary"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:text="Join Waitlist"

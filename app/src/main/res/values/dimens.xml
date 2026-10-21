@@ -1,0 +1,9 @@
+<resources>
+    <dimen name="ticketjack_screen_padding">24dp</dimen>
+    <dimen name="ticketjack_content_padding">16dp</dimen>
+    <dimen name="ticketjack_section_gap">24dp</dimen>
+    <dimen name="ticketjack_item_gap">12dp</dimen>
+    <dimen name="ticketjack_card_radius">20dp</dimen>
+    <dimen name="ticketjack_button_radius">14dp</dimen>
+    <dimen name="ticketjack_field_radius">12dp</dimen>
+</resources>

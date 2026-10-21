@@ -10,9 +10,9 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.functions.FirebaseFunctions;
 import com.google.firebase.messaging.FirebaseMessaging;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -244,6 +244,11 @@ public class AuthRepository {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
                         if (document != null && document.exists()) {
+                            if (Boolean.FALSE.equals(document.getBoolean("isActive"))
+                                    || Boolean.FALSE.equals(document.getBoolean("roleActive"))) {
+                                callback.onError("This account is not active.");
+                                return;
+                            }
                             String role = document.getString("role");
                             if (role != null) {
                                 callback.onRoleFetched(role);
@@ -301,13 +306,10 @@ public class AuthRepository {
             callback.onError("No user is logged in.");
             return;
         }
-        String userId = fUser.getUid();
-
-        db.collection("users").document(userId).delete()
-                .addOnSuccessListener(aVoid -> {
-                    fUser.delete()
-                            .addOnSuccessListener(aVoid2 -> callback.onSuccess())
-                            .addOnFailureListener(e -> callback.onError(e.getMessage()));
+        FirebaseFunctions.getInstance().getHttpsCallable("deleteOwnAccount").call()
+                .addOnSuccessListener(result -> {
+                    auth.signOut();
+                    callback.onSuccess();
                 })
                 .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
@@ -408,6 +410,12 @@ public class AuthRepository {
                                     if (docTask.isSuccessful()) {
                                         DocumentSnapshot document = docTask.getResult();
                                         if (document != null && document.exists()) {
+                                            if (Boolean.FALSE.equals(document.getBoolean("isActive"))
+                                                    || Boolean.FALSE.equals(document.getBoolean("roleActive"))) {
+                                                auth.signOut();
+                                                callback.onError("This account is not active.");
+                                                return;
+                                            }
                                             String actualRole = document.getString("role");
 
                                             if (expectedRole.equals(actualRole)) {
@@ -442,12 +450,12 @@ public class AuthRepository {
     }
 
     /**
-     * Registers a new user with email and password (for Organizer or Admin),
+     * Registers a new organizer with email and password,
      * creates their Auth record, and creates their user document in Firestore.
      *
      * @param email     user's email
      * @param password  user's password
-     * @param role      role to assign (e.g., {@code "organizer"}, {@code "admin"})
+     * @param role      role to assign; only {@code "organizer"} is accepted
      * @param firstName user's first name
      * @param lastName  user's last name
      * @param phone     user's phone number
@@ -455,6 +463,10 @@ public class AuthRepository {
      */
     public void registerEmailPasswordUser(String email, String password, String role,
                                           String firstName, String lastName, String phone, AuthCallback callback) {
+        if (!"organizer".equals(role)) {
+            callback.onError("Only organizer accounts can be registered from the app.");
+            return;
+        }
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -517,6 +529,10 @@ public class AuthRepository {
             callback.onError("User is null, cannot create profile.");
             return;
         }
+        if (!"entrant".equals(role) && !"organizer".equals(role)) {
+            callback.onError("This role cannot be registered from the app.");
+            return;
+        }
 
         Map<String, Object> notificationPrefs = new HashMap<>();
         notificationPrefs.put("lotteryResults", true);
@@ -538,7 +554,17 @@ public class AuthRepository {
                 })
                 .addOnFailureListener(e -> {
                     Log.w(TAG, "Error creating user document", e);
-                    callback.onError("Failed to save user profile: " + e.getMessage());
+                    user.delete()
+                            .addOnCompleteListener(deleteTask -> {
+                                auth.signOut();
+                                String message = "Failed to save user profile: " + e.getMessage();
+                                if (!deleteTask.isSuccessful()) {
+                                    Log.e(TAG, "Failed to roll back Authentication record",
+                                            deleteTask.getException());
+                                    message += " Contact support to remove the incomplete account.";
+                                }
+                                callback.onError(message);
+                            });
                 });
     }
 
@@ -566,43 +592,20 @@ public class AuthRepository {
     }
 
     /**
-     * Deletes a specific user's Firestore profile document (not the Auth record),
-     * and logs the removal to the {@code adminRemovalLogs} collection.
+     * Deletes a specific non-organizer account, its profile/history, and event
+     * participant references, then logs the removal to {@code adminRemovalLogs}.
      *
      * @param userId   ID of the user to remove
      * @param callback callback for success / error
      */
     public void deleteUserProfileById(String userId, TaskCallback callback) {
-        FirebaseUser admin = auth.getCurrentUser();
-        String adminId = admin != null ? admin.getUid() : "unknown";
-
-        db.collection("users").document(userId).delete()
-                .addOnSuccessListener(aVoid -> {
-                    logUserRemoval(userId, adminId);
-                    callback.onSuccess();
-                })
+        Map<String, Object> data = new HashMap<>();
+        data.put("userId", userId);
+        FirebaseFunctions.getInstance().getHttpsCallable("deleteUserProfile").call(data)
+                .addOnSuccessListener(result -> callback.onSuccess())
                 .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 
-    /**
-     * Logs that an admin removed a user profile to the
-     * {@code adminRemovalLogs} collection.
-     *
-     * @param removedUserId ID of the user that was removed
-     * @param adminId       ID of the admin who performed the removal
-     */
-    private void logUserRemoval(String removedUserId, String adminId) {
-        Map<String, Object> log = new HashMap<>();
-        log.put("removedUserId", removedUserId);
-        log.put("removedByAdminId", adminId);
-        log.put("timestamp", FieldValue.serverTimestamp());
-
-        db.collection("adminRemovalLogs").add(log)
-                .addOnSuccessListener(ref ->
-                        Log.d(TAG, "Removal logged with id: " + ref.getId()))
-                .addOnFailureListener(e ->
-                        Log.w(TAG, "Failed to log removal", e));
-    }
 
     /**
      * Deactivates an organizer user (soft delete) instead of removing the document.
@@ -614,20 +617,11 @@ public class AuthRepository {
      * @param callback    callback notified of success or failure (may be {@code null})
      */
     public void deactivateOrganizer(String organizerId, String reason, TaskCallback callback) {
-        FirebaseUser admin = auth.getCurrentUser();
-        String adminId = admin != null ? admin.getUid() : "unknown";
-
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("isActive", false);
-        updates.put("roleActive", false);
-        updates.put("deactivatedAt", FieldValue.serverTimestamp());
-        updates.put("deactivatedByAdminId", adminId);
-        updates.put("deactivationReason", reason);
-
-        db.collection("users").document(organizerId)
-                .update(updates)
-                .addOnSuccessListener(aVoid -> {
-                    logOrganizerDeactivation(organizerId, adminId, reason);
+        Map<String, Object> data = new HashMap<>();
+        data.put("organizerId", organizerId);
+        data.put("reason", reason);
+        FirebaseFunctions.getInstance().getHttpsCallable("deactivateOrganizer").call(data)
+                .addOnSuccessListener(result -> {
                     if (callback != null) callback.onSuccess();
                 })
                 .addOnFailureListener(e -> {
@@ -635,28 +629,6 @@ public class AuthRepository {
                 });
     }
 
-    /**
-     * Logs an admin action that deactivated an organizer to the
-     * {@code organizerDeactivationLogs} collection.
-     *
-     * @param organizerId ID of the organizer whose account was deactivated
-     * @param adminId     ID of the admin who performed the deactivation
-     * @param reason      reason for deactivation
-     */
-    private void logOrganizerDeactivation(String organizerId, String adminId, String reason) {
-        Map<String, Object> log = new HashMap<>();
-        log.put("organizerId", organizerId);
-        log.put("adminId", adminId);
-        log.put("reason", reason);
-        log.put("timestamp", FieldValue.serverTimestamp());
-
-        db.collection("organizerDeactivationLogs")
-                .add(log)
-                .addOnSuccessListener(ref ->
-                        Log.d(TAG, "Organizer deactivation logged: " + ref.getId()))
-                .addOnFailureListener(e ->
-                        Log.w(TAG, "Failed to log organizer deactivation", e));
-    }
 
     /**
      * Signs out the current user from Firebase Authentication.

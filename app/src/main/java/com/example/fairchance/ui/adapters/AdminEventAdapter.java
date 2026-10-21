@@ -124,8 +124,7 @@ public class AdminEventAdapter extends RecyclerView.Adapter<AdminEventAdapter.Ad
                 FragmentActivity act = (FragmentActivity) ctx;
                 EventDetailsFragment frag = EventDetailsFragment.newInstance(event.getEventId());
                 FragmentTransaction ft = act.getSupportFragmentManager().beginTransaction();
-                // NOTE: if your admin uses dashboard_container, change this ID:
-                ft.replace(R.id.fragment_container, frag);
+                ft.replace(R.id.dashboard_container, frag);
                 ft.addToBackStack(null);
                 ft.commit();
             };

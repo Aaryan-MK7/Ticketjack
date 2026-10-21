@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FAFAFA"
+    android:background="@color/ticketjack_surface"
     android:fillViewport="true">
 
     <LinearLayout
@@ -29,16 +29,17 @@
                     android:id="@+id/textView2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Welcome Back,"
-                    android:textSize="16sp" />
+                    android:text="Welcome back"
+                    android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
+                    android:textColor="@color/ticketjack_on_surface_variant" />
 
                 <TextView
                     android:id="@+id/textView3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Name"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium"
+                    android:textColor="@color/ticketjack_on_surface" />
             </LinearLayout>
 
             <ImageButton
@@ -69,8 +70,8 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
             android:text="Categories"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+            android:textColor="@color/ticketjack_on_surface" />
 
         <HorizontalScrollView
             android:layout_width="match_parent"
@@ -86,7 +87,7 @@
 
                 <Button
                     android:id="@+id/button"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Ticketjack.Button.Outlined"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
@@ -94,7 +95,7 @@
 
                 <Button
                     android:id="@+id/button2"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Ticketjack.Button.Outlined"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
@@ -102,7 +103,7 @@
 
                 <Button
                     android:id="@+id/button3"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Ticketjack.Button.Outlined"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
@@ -110,7 +111,7 @@
 
                 <Button
                     android:id="@+id/button4"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Ticketjack.Button.Outlined"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
@@ -118,7 +119,7 @@
 
                 <Button
                     android:id="@+id/button5"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Ticketjack.Button.Outlined"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
@@ -126,7 +127,7 @@
 
                 <Button
                     android:id="@+id/button_sports"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Ticketjack.Button.Outlined"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
@@ -146,7 +147,7 @@
 
             <Button
                 android:id="@+id/btn_how_it_works"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.Ticketjack.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/how_it_works"
@@ -157,7 +158,7 @@
 
             <Button
                 android:id="@+id/btn_filter_today"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.Ticketjack.Button.Outlined"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Today's Events"

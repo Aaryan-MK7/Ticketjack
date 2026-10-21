@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp"
-        android:background="#FFFFFF">
+        android:background="@color/ticketjack_surface">
 
         <TextView
             android:id="@+id/tvPickerTitle"
@@ -18,7 +18,7 @@
             android:text="Select Date and Time"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="#000000"
+            android:textColor="@color/ticketjack_on_surface"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
@@ -58,8 +58,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Confirm"
-                android:textColor="#FFFFFF"
-                android:background="#4CAF50"
+                android:textColor="@color/white"
+                android:background="@color/ticketjack_secondary"
                 android:layout_marginEnd="8dp" />
 
             <Button
@@ -68,8 +68,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Cancel"
-                android:textColor="#000000"
-                android:background="#E0E0E0"
+                android:textColor="@color/ticketjack_on_surface"
+                android:background="@color/ticketjack_surface_variant"
                 android:layout_marginStart="8dp" />
 
         </LinearLayout>

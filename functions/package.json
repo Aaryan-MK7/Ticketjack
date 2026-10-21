@@ -2,8 +2,8 @@
   "name": "functions",
   "description": "Cloud Functions for Firebase",
   "scripts": {
-    "check": "node --check index.js",
-    "test": "npm run check",
+    "check": "node --check index.js && node --check workflow.js",
+    "test": "npm run check && node --test workflow.test.js",
     "serve": "firebase emulators:start --only functions",
     "shell": "firebase functions:shell",
     "start": "npm run shell",

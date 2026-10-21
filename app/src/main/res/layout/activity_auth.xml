@@ -4,9 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/ticketjack_surface"
     android:orientation="vertical"
     android:gravity="center_horizontal"
-    android:padding="32dp"
+    android:padding="@dimen/ticketjack_screen_padding"
     android:fitsSystemWindows="true"
     tools:context=".ui.AuthActivity">
 
@@ -15,7 +16,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="@dimen/ticketjack_section_gap"
+        android:textColor="@color/ticketjack_on_surface"
         tools:text="Organizer Login"/>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -26,7 +28,7 @@
         android:layout_marginBottom="16dp"
         android:visibility="gone"
         tools:visibility="visible"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        style="@style/Widget.Ticketjack.TextInput">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/edit_text_firstName"
@@ -120,7 +122,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        style="@style/Widget.Material3.Button.TextButton"
+        style="@style/Widget.Ticketjack.Button.Text"
         tools:text="Don't have an account? Register" />
 
 </LinearLayout>

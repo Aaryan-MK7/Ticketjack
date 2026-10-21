@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import com.example.fairchance.R;
 import com.example.fairchance.data.repository.AuthRepository;
+import com.example.fairchance.domain.UserRole;
 import com.example.fairchance.ui.RoleSelectionActivity;
 import com.example.fairchance.ui.fragments.AdminDashboardFragment;
 import com.example.fairchance.ui.fragments.EntrantHomeFragment;
@@ -77,8 +78,8 @@ public class MainActivity extends AppCompatActivity {
         authRepository.getUserRole(new AuthRepository.RoleCallback() {
             @Override
             public void onRoleFetched(String role) {
-                switch (role) {
-                    case "entrant":
+                switch (UserRole.fromStorage(role)) {
+                    case ENTRANT:
                         bottomNav.setVisibility(View.VISIBLE);
                         setupEntrantNavigation();
 
@@ -91,22 +92,24 @@ public class MainActivity extends AppCompatActivity {
                             bottomNav.setSelectedItemId(R.id.nav_home);
                         }
                         break;
-                    case "organizer":
+                    case ORGANIZER:
                         bottomNav.setVisibility(View.VISIBLE);
                         setupOrganizerNavigation();
                         loadDashboardFragment(new OrganizerDashboardFragment());
                         bottomNav.setSelectedItemId(R.id.nav_home);
                         break;
-                    case "admin":
+                    case ADMIN:
                         bottomNav.setVisibility(View.GONE);
                         loadDashboardFragment(new AdminDashboardFragment());
                         break;
                     default:
-                        Log.e("MainActivity", "Unknown role, defaulting to entrant.");
-                        bottomNav.setVisibility(View.VISIBLE);
-                        setupEntrantNavigation();
-                        loadDashboardFragment(new EntrantHomeFragment());
-                        bottomNav.setSelectedItemId(R.id.nav_home);
+                        Log.e("MainActivity", "Unknown role; rejecting session.");
+                        Toast.makeText(
+                                MainActivity.this,
+                                "Your account role is not supported.",
+                                Toast.LENGTH_LONG
+                        ).show();
+                        logout();
                         break;
                 }
             }

@@ -1,431 +1,309 @@
 # Ticketjack
+Ticketjack is an Android application for fair, lottery-based event registration. Instead of rewarding the fastest person to refresh a screen, entrants join an open waiting list; organizers run a transparent draw; selected entrants accept or decline; and the system can draw replacements when needed.
 
-Ticketjack is a role-based Android event-registration app built around fair, lottery-style admission. Entrants join event waiting lists during a registration window; organizers randomly sample candidates, notify selected entrants, and draw replacements when someone declines; administrators can moderate events, users, organizers, images, and notification records.
+The app supports three roles:
 
-The Android application is written in Java and uses Firebase Authentication, Cloud Firestore, Cloud Storage, Cloud Messaging, and callable Cloud Functions. The repository also contains the Node.js Cloud Functions that send batch notifications.
+- **Entrants** discover events, scan event QR codes, join waiting lists, receive and respond to invitations, review history, and control notification preferences.
+- **Organizers** create and manage events, inspect participant groups, view required entrant locations, run draws, draw replacements, export lists, and communicate with entrants.
+- **Administrators** moderate profiles, events, organizers, uploaded posters, and notification audit records.
 
-> **Project provenance:** this code was migrated and reorganized from the public [`CMPUT301F25binary1/binary1`](https://github.com/CMPUT301F25binary1/binary1) project. The original contributor list is retained in [`docs/team.txt`](docs/team.txt).
+Ticketjack uses a Java/XML Android client with Firebase Authentication, Firestore, Storage, Cloud Messaging, and Node.js callable Cloud Functions.
 
-## What the app supports
-
-### Entrants
-
-- Register with an email and profile details using a persistent anonymous Firebase Auth account.
-- Browse events whose registration window is currently open.
-- Search by event name, filter by category, and show events happening today.
-- Open an event directly by scanning its QR code.
-- Join or leave a waiting list.
-- Share the last known device location when an event requires geolocation.
-- Review waiting-list and selection history.
-- Accept or decline a lottery invitation.
-- Edit profile details and notification preferences.
-- Delete the current Firebase Auth account and Firestore profile.
-
-### Organizers
-
-- Register or sign in with email and password.
-- Create events with registration dates, event date, category, guidelines, poster, optional waiting-list limit, and optional geolocation requirement.
-- Edit events and replace posters.
-- Generate an event QR code from the event identifier.
-- View waiting, selected, cancelled, and confirmed entrant groups.
-- View waiting-list locations on Google Maps.
-- Randomly sample entrants and draw replacements.
-- Send notifications to selected, waiting, or cancelled entrants.
-- Export entrant lists as CSV.
-
-### Administrators
-
-- See live counts for events, users, organizers, and event posters.
-- Browse and remove events.
-- Browse and remove user profiles.
-- Deactivate organizer profiles and their events.
-- Review and remove uploaded event images.
-- Review notification logs with date and event filters.
-
-## Runtime flow
-
-```mermaid
-flowchart TD
-    Launch[Launch app] --> Splash[SplashActivity]
-    Splash --> AuthState{Firebase user exists?}
-    AuthState -- No --> Roles[Choose entrant, organizer, or admin]
-    Roles --> Auth[AuthActivity]
-    Auth --> Main[MainActivity]
-    AuthState -- Yes --> Token[Refresh FCM token]
-    Token --> Main
-    Main --> Role{Role in users document}
-    Role -- entrant --> Entrant[Entrant dashboard]
-    Role -- organizer --> Organizer[Organizer dashboard]
-    Role -- admin --> Admin[Admin dashboard]
-```
-
-1. `SplashActivity` waits briefly, checks Firebase Authentication, refreshes the FCM token for an existing user, and routes to either role selection or the main app.
-2. `RoleSelectionActivity` passes the selected role to `AuthActivity`.
-3. Entrants use anonymous authentication; organizers and admins use email/password authentication.
-4. Every successful registration creates `users/{uid}` in Firestore.
-5. `MainActivity` reads the user document's `role` and loads the corresponding dashboard.
-6. Entrant and organizer screens use a bottom navigation bar. Admin screens use a dashboard and fragment navigation.
-
-## Event and lottery lifecycle
-
+## Product model
+### Fair registration lifecycle
 ```mermaid
 stateDiagram-v2
-    [*] --> Browsing
-    Browsing --> Waiting: Join waiting list
-    Waiting --> Browsing: Leave waiting list
-    Waiting --> Selected: Organizer samples entrant
-    Selected --> Confirmed: Entrant accepts
-    Selected --> Declined: Entrant declines
-    Selected --> Cancelled: Organizer cancels pending selection
-    Declined --> ReplacementDraw: Draw another entrant
-    Cancelled --> ReplacementDraw: Draw another entrant
-    ReplacementDraw --> Selected
+    [*] --> Discovering
+    Discovering --> Waiting: Entrant joins an open list
+    Waiting --> Selected: Organizer runs trusted draw
+    Waiting --> Discovering: Entrant leaves list
+    Selected --> Confirmed: Entrant accepts invitation
+    Selected --> Declined: Entrant declines invitation
+    Selected --> Cancelled: Organizer cancels unresolved entrants
+    Declined --> Replacement: Server selects next eligible entrant
+    Cancelled --> Replacement: Organizer requests a replacement
+    Replacement --> Selected
     Confirmed --> [*]
 ```
 
-- Joining writes both `events/{eventId}/waitingList/{uid}` and `users/{uid}/eventHistory/{eventId}` in one Firestore batch.
-- If geolocation is required, the waiting-list document also stores a Firestore `GeoPoint`.
-- Sampling shuffles eligible waiting-list user IDs, creates `selected` documents, updates user history to `Selected`, and removes sampled users from `waitingList`.
-- Accepting changes history to `Confirmed` and writes `confirmedAttendees/{uid}`.
-- Declining changes history and selection status, then attempts to sample one replacement.
-- Organizer cancellation records the entrant under `cancelled` and changes history to `Cancelled`.
+The draw, response, replacement, cancellation, notification fan-out, event deletion, and administrative moderation routes are server-authoritative. A user interface is not an authorization boundary, so state changes do not depend on a client-side role check.
+
+### User journeys
+**Entrant**
+
+1. Select the Entrant role and register under anonymous Firebase Authentication.
+2. Browse currently open events by category, date, or search term, or scan a QR code.
+3. Open details and join the waiting list. If required, Ticketjack shares the device’s last known location only for that entry.
+4. Receive a selection notification and accept or decline from Invitations.
+5. Review history and adjust profile/notification preferences.
+
+**Organizer**
+
+1. Register with email/password, create a complete event, and upload a poster.
+2. Set the required event capacity and registration interval, plus an optional waiting-list limit, category, guidelines, location, and geolocation requirement.
+3. Open an event to view entrants, run a bounded random sample that cannot exceed capacity, notify selected entrants, and manage cancellations/replacements.
+
+**Administrator**
+
+1. Sign in with a role provisioned by a trusted administrator.
+2. Review platform data and open a moderation tool.
+3. Deactivate an organizer and their events, remove a profile, remove a poster, or inspect notification records.
 
 ## Architecture
-
-The project uses a pragmatic activity/fragment + repository structure:
-
+### System overview
 ```mermaid
 flowchart LR
-    UI[Activities, fragments, adapters] --> Repositories[Firebase repositories]
-    UI --> Domain[Pure domain helpers]
-    Repositories --> Auth[Firebase Auth]
-    Repositories --> Firestore[Cloud Firestore]
-    Repositories --> Storage[Cloud Storage]
-    Repositories --> Functions[Callable Functions]
-    Functions --> FCM[Firebase Cloud Messaging]
-    FCM --> Service[MyFirebaseMessagingService]
-    Service --> UI
+    UI["Android UI<br/>activities, fragments, adapters"] --> Domain["Domain<br/>roles and participant states"]
+    UI --> Catalog["EventCatalogRepository<br/>read models and listeners"]
+    UI --> Enrollment["EnrollmentRepository<br/>entrant commands"]
+    UI --> Legacy["EventRepository<br/>compatibility facade"]
+    Catalog --> Firestore["Cloud Firestore"]
+    Enrollment --> Functions["Callable Cloud Functions"]
+    Legacy --> Functions
+    Functions --> Firestore
+    Functions --> Storage["Cloud Storage"]
+    Functions --> FCM["Firebase Cloud Messaging"]
+    FCM --> Service["MyFirebaseMessagingService<br/>notification routing only"]
 ```
 
-- **UI layer:** activities host role routing and fragment containers; fragments implement screens; RecyclerView adapters render lists and invoke repository operations.
-- **Repository layer:** centralizes Firebase Auth, Firestore, Storage, callable Functions, admin image operations, and notification-log operations.
-- **Domain layer:** contains Firebase-independent validation and invitation/waiting-list logic used by local unit tests.
-- **Model layer:** Firestore-compatible POJOs such as `Event`, `User`, `Invitation`, and `NotificationLog`.
-- **Service layer:** receives FCM messages, updates event history when a data payload contains a status, and creates Android notifications.
-- **Cloud Functions:** trusted backend code reads Firestore recipient groups and sends FCM multicast messages.
-
-### Source layout
+### Android boundaries
+The app deliberately remains a single Java/XML Android module. A Kotlin/Compose or multi-module rewrite would create unnecessary migration risk while Firebase-facing workflows are being hardened.
 
 ```text
-Ticketjack/
-├── app/
-│   └── src/
-│       ├── main/
-│       │   ├── java/com/example/fairchance/
-│       │   │   ├── data/repository/   # Firebase-facing data access
-│       │   │   ├── domain/            # Pure business rules and validators
-│       │   │   ├── models/            # Firestore/domain POJOs
-│       │   │   ├── service/           # FCM Android service
-│       │   │   ├── ui/
-│       │   │   │   ├── adapters/      # RecyclerView adapters
-│       │   │   │   └── fragments/     # Entrant, organizer, and admin screens
-│       │   │   └── util/              # CSV and text-watcher helpers
-│       │   ├── res/                    # Layouts, drawables, menus, themes
-│       │   └── AndroidManifest.xml
-│       ├── test/                       # Local JVM tests
-│       └── androidTest/                # Espresso/instrumentation tests
-├── functions/                          # Firebase callable functions (Node.js)
-├── gradle/                             # Version catalog and wrapper
-├── docs/team.txt                       # Original contributor list
-├── firebase.json                       # Firebase Functions deployment config
-├── .firebaserc                         # Default Firebase project alias
-└── local.properties.example            # Local SDK and Maps configuration
+app/src/main/java/com/example/fairchance/
+├── data/repository/
+│   ├── EventCatalogRepository.java   # event + status reads
+│   ├── EnrollmentRepository.java     # entrant callable commands
+│   ├── AuthRepository.java           # auth/profile and admin commands
+│   ├── AdminImageRepository.java     # trusted poster moderation
+│   └── EventRepository.java          # compatibility facade during migration
+├── domain/
+│   ├── UserRole.java                 # validated navigation roles
+│   ├── ParticipationStatus.java      # canonical history states
+│   └── workflow validators/helpers
+├── models/                            # Firestore-compatible POJOs
+├── service/                           # FCM token + notification presentation
+└── ui/                                # activities, fragments, adapters
 ```
 
-The Java namespace and Android application ID remain `com.example.fairchance` so the included Firebase Android client configuration continues to match the registered app. The user-visible app name and Gradle root project name are `Ticketjack`.
+`EventRepository` remains a compatibility facade for older screens. New work must not extend it:
 
-## Technology stack
+- Catalog/status/listener reads belong in a focused read repository.
+- Entrant commands belong in `EnrollmentRepository`.
+- Lottery, cancellation, notification, deletion, and moderation belong in Cloud Functions.
+- Feature UI should render loading/content/empty/error states rather than coordinating raw Firestore writes.
 
-### Android
+### Navigation
+`MainActivity` owns the single `dashboard_container` host and selects an entrant, organizer, or administrator experience from `UserRole`. The obsolete duplicate fragment container was removed. Entrant and organizer bottom navigation are initialized per validated role; administrator routes omit the bottom bar.
 
-- Java 11 source compatibility
-- Android Gradle Plugin 8.13 and Gradle 8.13
-- Minimum SDK 24; compile and target SDK 36
-- AndroidX AppCompat, Activity, ConstraintLayout, CardView, Navigation, Fragment Testing
-- Material Components
-- Glide for remote poster images
-- ZXing and JourneyApps embedded scanner for QR generation/scanning
-- Google Play Services Maps and Location
+Notification taps route through `MainActivity`. `MyFirebaseMessagingService` presents notifications and opens Invitations for selection messages; it never mutates event history locally because the Cloud Function owns that transition.
 
-### Firebase
+## Visual system
+Ticketjack’s Material 3 design system is defined in:
 
-- Firebase Android BoM 34.5
-- Authentication: anonymous and email/password
-- Cloud Firestore: application data and real-time listeners
-- Cloud Storage: event posters
-- Cloud Messaging: device push notifications
-- Cloud Functions: callable notification fan-out
-- Analytics
+- `app/src/main/res/values/colors.xml`
+- `app/src/main/res/values/themes.xml`
+- `app/src/main/res/values/styles.xml`
+- `app/src/main/res/values/dimens.xml`
 
-### Cloud Functions
+It supplies semantic primary, secondary, error, surface, outline, and on-surface colors; consistent button/card/input shapes; spacing; and a shared type scale. Core screens follow the same hierarchy:
 
-- Node.js 22
-- `firebase-functions` 7.x
-- `firebase-admin` 14.x
+- a task-oriented heading;
+- one prominent primary action;
+- outlined secondary/destructive alternatives;
+- status labels that do not rely on color alone;
+- 48dp minimum control height;
+- loading, empty, and error states;
+- resource-backed colors/styles rather than screen-local design constants.
 
-### Testing
+Account selection, authentication, entrant discovery, event details, event cards, invitations, organizer dashboard, event creation, event lists, and waiting-list controls use this foundation. Remaining legacy layouts inherit the Material 3 theme and should use the same Ticketjack resources when edited.
 
-- JUnit 4 through the JUnit Platform vintage engine
-- Mockito and Robolectric for local tests
-- AndroidX Test, Espresso, Espresso Intents, and Mockito Android for instrumentation tests
-
-## Firestore data model
-
-The following tree reflects the collection paths used by the current code:
-
+## Firebase data model
 ```text
 users/{uid}
-├── email, name, phone, role
+├── email, name, phone
+├── role: entrant | organizer | admin
 ├── fcmToken
 ├── notificationPreferences
 │   ├── lotteryResults
 │   └── organizerUpdates
-├── isActive / roleActive / deactivation metadata
+├── isActive, roleActive, deactivation metadata
 └── eventHistory/{eventId}
-    ├── eventName
-    ├── eventDate
-    ├── status
+    ├── eventName, eventDate
+    ├── status: Waiting | Selected | Confirmed | Declined | Cancelled
     └── updatedAt
 
 events/{eventId}
-├── organizerId
+├── organizerId, createdById, createdAt
 ├── name, description, category, guidelines, location
 ├── registrationStart, registrationEnd, eventDate
-├── capacity, price, waitingListLimit, geolocationRequired
-├── posterImageUrl and upload metadata
-├── createdAt / timeCreated and creator metadata
+├── capacity, waitingListLimit, geolocationRequired
+├── posterImageUrl and poster metadata
+├── isActive and deactivation metadata
 ├── waitingList/{uid}
 │   ├── joinedAt
 │   └── location (optional GeoPoint)
 ├── selected/{uid}
-│   ├── status
-│   ├── sampledAt / notifiedAt
-│   └── replacementDrawn
+│   ├── status: pending | notified | accepted | declined | cancelled
+│   └── sampledAt, notifiedAt, response/replacement metadata
 ├── confirmedAttendees/{uid}
-│   └── confirmedAt
 ├── cancelled/{uid}
-│   ├── cancelledAt
-│   └── reason
 └── notificationLogs/{logId}
 
-notificationLogs/{logId}
+notificationLogs/{logId}                 # canonical platform audit stream
 adminRemovalLogs/{logId}
-organizerDeactivationLogs/{logId}
+eventRemovalLogs/{logId}
 imageRemovalLogs/{logId}
+organizerDeactivationLogs/{logId}
 ```
 
-The app currently uses both top-level `notificationLogs` for the admin audit UI and event-scoped notification logs written by two Cloud Functions. If notification auditing is expanded, these should be consolidated into one canonical schema.
+Every server-triggered notification records both event-scoped context and a top-level audit record. Results distinguish `recipientCount`, actual `sentCount`, `failureCount`, and `skippedCount`; an absent FCM token is not reported as a delivery.
 
-## Push notifications
+## Security model
+### Direct client access
+`firestore.rules` and `storage.rules` are versioned with the repository and deployed with Firebase:
 
-`functions/index.js` exports three callable functions:
+- Signed-in users can read events.
+- Users can create only their own `entrant` or `organizer` profile. A client cannot create an administrator account.
+- A user can alter only a limited set of their own profile fields and cannot alter their role.
+- Organizers create/update only events they own; `organizerId` and `createdById` are immutable from the client.
+- Participant subcollections and event history are read-only to clients. Callable functions own their state transitions.
+- The Storage poster path is restricted to an active event owner or administrator and accepts images smaller than 10 MiB.
+- Audit logs are read-only and administrator-visible.
 
-- `sendChosenNotifications`: sends to all eligible `selected` documents or one selected entrant, then marks selection documents as notified.
-- `sendWaitingListNotifications`: sends an organizer message to the waiting list and writes an event-scoped log.
-- `sendCancelledNotifications`: sends an organizer message to cancelled entrants and writes an event-scoped log.
+### Callable functions
+`functions/index.js` exports:
 
-Each function:
+- `joinWaitingList({ eventId, latitude?, longitude? })`
+- `leaveWaitingList({ eventId })`
+- `respondToInvitation({ eventId, accepted })`
+- `sampleAttendees({ eventId, count })`
+- `drawReplacement({ eventId, cancelledEntrantId })`
+- `cancelPendingEntrants({ eventId })`
+- `sendChosenNotifications({ eventId, entrantId? })`
+- `sendWaitingListNotifications({ eventId, message? })`
+- `sendCancelledNotifications({ eventId, message? })`
+- `deleteEvent({ eventId })`
+- `deactivateOrganizer({ organizerId, reason? })`
+- `deleteUserProfile({ userId })`
+- `deleteOwnAccount()`
+- `removeEventPoster({ eventId, imageUrl })`
 
-1. Validates `eventId`.
-2. Loads the event and target subcollection.
-3. Loads each target user's notification preferences and FCM token.
-4. Sends one multicast FCM request for available tokens.
-5. Returns `{ sentCount, failureCount }`.
+Each function validates Firebase Authentication, reads the caller’s active role, and verifies administrator access or organizer ownership where required. Enrollment and lottery operations use Firestore transactions so capacity checks, state transitions, and associated history writes remain coherent under concurrent requests. Cancellation and notification finalization update only live invitations, replacement draws can run only once per cancelled entry, and entrant responses win concurrent races.
 
-The Android `MyFirebaseMessagingService` handles foreground/data messages, builds an Android notification channel, and can route a selected entrant directly to the Invitations screen.
+Account deletion is also server-authoritative. It recursively removes the profile and history, clears participant references from events, removes the Firebase Authentication record, and deactivates events owned by a self-deleting organizer.
 
-## Prerequisites
+### Administrator bootstrap
+The Android client intentionally cannot self-register an administrator. Bootstrap a first administrator through trusted server tooling, the Firebase Admin SDK, or a secure operational script by creating a Firebase Auth account and a matching Firestore profile with `role: "admin"`. Do not add a public administrator registration route.
 
-- Android Studio with Android SDK 36, or the equivalent command-line SDK
+## Local setup
+### Prerequisites
+- Android Studio and Android SDK 36
 - JDK 17
-- Node.js 22 for Cloud Functions
-- A Firebase project with Authentication, Firestore, Storage, Messaging, and Functions enabled
-- A Google Maps SDK for Android API key for the waiting-list map
-- Firebase CLI if deploying or running Functions emulators
+- Node.js 22
+- Firebase CLI
+- A Firebase project with Authentication, Firestore, Storage, Cloud Messaging, and Functions enabled
+- A Google Maps SDK for Android key if entrant-location maps are used
 
-## Fresh-clone setup
-
-### 1. Clone
-
+### Android configuration
 ```bash
 git clone https://github.com/Aaryan-MK7/Ticketjack.git
 cd Ticketjack
-```
-
-### 2. Configure the Android SDK and Maps key
-
-```bash
 cp local.properties.example local.properties
 ```
 
-Edit `local.properties`:
+Set the Android SDK and Maps key in `local.properties`:
 
 ```properties
 sdk.dir=/absolute/path/to/Android/sdk
 MAPS_API_KEY=your_restricted_google_maps_api_key
 ```
 
-`local.properties` is ignored by Git. `MAPS_API_KEY` can instead be supplied as an environment variable. The project builds without a Maps key, but the map screen will not load map tiles.
+Keep the Maps key restricted to package `com.example.fairchance`, approved signing-certificate SHA-1 fingerprints, and the Maps SDK for Android.
 
-Restrict the key in Google Cloud Console to:
+The checked-in `app/google-services.json` and `.firebaserc` identify the original Firebase project. For a separate project:
 
-- Android apps
-- package `com.example.fairchance`
-- the SHA-1 fingerprints of approved debug/release signing certificates
-- Maps SDK for Android only
+1. Create an Android Firebase app using `com.example.fairchance`.
+2. Replace `app/google-services.json` and update `.firebaserc`.
+3. Enable anonymous and email/password providers.
+4. Create Firestore and Storage.
+5. Provision the first administrator through trusted tooling.
+6. Deploy rules, indexes, and functions before exercising protected mutations.
 
-### 3. Configure Firebase
-
-The repository includes `app/google-services.json` and `.firebaserc` for the original Firebase project so the checked-in client can compile. Backend access still depends on that project's active services, rules, data, authorized signing certificates, and your permissions.
-
-For a separate Firebase project:
-
-1. Create an Android app with package `com.example.fairchance`.
-2. Replace `app/google-services.json`.
-3. Update `.firebaserc` with the new project ID.
-4. Enable anonymous authentication and email/password authentication.
-5. Create Firestore and Storage.
-6. Deploy appropriate Firestore and Storage security rules.
-7. Deploy the functions from this repository.
-8. Add the required Firestore indexes when Firebase surfaces an index link for compound queries.
-
-### 4. Build the Android app
-
-```bash
-./gradlew clean assembleDebug
-```
-
-The debug APK is generated at `app/build/outputs/apk/debug/app-debug.apk`.
-
-To install on a connected emulator or device:
-
-```bash
-./gradlew installDebug
-```
-
-### 5. Install Cloud Functions dependencies
-
+### Install, emulate, and deploy
 ```bash
 npm ci --prefix functions
 npm test --prefix functions
+
+# Deploy rules, indexes, Storage policy, and Functions.
+firebase deploy
+
+# Use disposable data for local integration work.
+firebase emulators:start --only auth,firestore,storage,functions
 ```
 
-## Development commands
+Do not run destructive moderation or integration tests against production data.
 
+## Development and verification
 ### Android
-
 ```bash
-# Local JVM tests
 ./gradlew testDebugUnitTest
-
-# Android static analysis
 ./gradlew lintDebug
-
-# Debug APK
 ./gradlew assembleDebug
-
-# Instrumentation/UI tests; requires a running emulator or connected device
 ./gradlew connectedDebugAndroidTest
 ```
 
 ### Cloud Functions
-
 ```bash
-# Reproducible install
 npm ci --prefix functions
-
-# JavaScript syntax validation
 npm test --prefix functions
-
-# Production dependency audit
 npm audit --prefix functions --omit=dev
-
-# Local Functions emulator
-npm run serve --prefix functions
-
-# Deploy callable functions
-npm run deploy --prefix functions
 ```
 
-## Validation performed for this migration
+### Release checklist
+1. Run Android unit tests, lint, and a debug build with JDK 17.
+2. Run Functions tests and exercise protected functions through emulators.
+3. Deploy rules, indexes, Storage rules, and Functions together.
+4. Verify behavior as entrant, organizer, administrator, and an unauthorized signed-in user.
+5. Exercise concurrent waitlist joins and invitation responses in a dedicated test project.
+6. Run instrumentation tests on at least one supported emulator or device.
 
-The reorganized repository was validated on macOS with JDK 17, Android SDK 36, and Node.js 22:
+## Firestore indexes
+`firestore.indexes.json` includes the composite history index used for pending invitations:
 
-- `./gradlew testDebugUnitTest assembleDebug` — 33 tests passed, 0 failed
-- `./gradlew lintDebug` — passed with 0 errors; non-blocking modernization/accessibility warnings remain
-- `npm test --prefix functions` — JavaScript syntax passed
-- `npm audit --prefix functions --omit=dev` — zero known vulnerabilities after dependency upgrades
-- Debug APK generation — passed
+```text
+eventHistory: status ASC, eventDate DESC
+```
 
-Instrumentation tests require an Android emulator or physical device. They should be run with `connectedDebugAndroidTest` before a release; they are not equivalent to local JVM tests.
+When Firebase surfaces a new required index link for a future query, add its definition to `firestore.indexes.json` rather than relying on console-only configuration.
 
-## Test organization
-
-- `app/src/test`: models, CSV export, event validation, invitation state, and waiting-list logic.
-- `app/src/androidTest`: repository/Firebase integration checks plus UI flows for splash, role selection, authentication, entrant dashboard, organizer dashboard, events, invitations, history, profiles, and waiting lists.
-
-Some instrumentation tests interact with Firebase. Run them only against a dedicated test project or emulator setup, not production data.
-
-## Security and production-readiness notes
-
-This repository builds and its local checks pass, but the current application architecture should not be treated as production-secure without backend hardening:
-
-- Firestore and Storage rules are not included. Client-side role checks are not an authorization boundary.
-- The client currently exposes organizer/admin registration and writes the chosen role to Firestore. A production system must assign privileged roles from a trusted backend or custom claims.
-- Callable notification functions currently validate inputs but do not enforce organizer/admin authorization. Add authentication and ownership checks before public deployment.
-- Entrants use anonymous authentication. Clearing app data or changing devices can make that account inaccessible unless an account-linking flow is added.
-- The organizer dashboard's standalone “Lottery” shortcut is not wired; sampling is available from an individual event's details screen.
-- Event deletion removes only the subcollections explicitly listed by the repository. Additional subcollections must be included or deleted by a trusted backend.
-- Firebase client config is not a server secret, but all API keys should still be application-restricted and Firebase rules must protect data.
+## Operational notes
+- Entrant accounts are anonymous. Clearing app data or changing devices can make an account inaccessible; add account linking before treating this as a production account system.
+- Caller authorization is based on Firestore role documents and event ownership. Rules protect direct client access; callable functions protect high-risk workflows.
+- Event capacity is required, limited to 1–10,000, immutable after creation, and enforced by the server during each draw.
+- The app retains the `com.example.fairchance` package/application identifier to stay compatible with the Firebase client configuration. The product name is Ticketjack.
+- QR content is an event identifier. Visibility and authorization still come from Firestore/Functions, not the QR code.
+- Event poster removal is administratively audited. Event deletion is recursive and server-only because a Firestore document delete does not otherwise remove nested subcollections.
 
 ## Troubleshooting
-
-### `Unable to locate a Java Runtime`
-
-Install JDK 17 and point Gradle to it:
+### Android build cannot find Java
+Install JDK 17 and set `JAVA_HOME`:
 
 ```bash
 export JAVA_HOME=$(/usr/libexec/java_home -v 17)
 ```
 
-### Android SDK not found
+### Functions report permission denied
+Confirm that the Firebase user has a matching `users/{uid}` profile, an active account, and the required role. For organizer actions, confirm `events/{eventId}.organizerId` or `createdById` equals that user’s UID.
 
-Set `sdk.dir` in `local.properties` or export `ANDROID_HOME`.
+### An organizer cannot update an older event
+Backfill legacy event documents with both `organizerId` and `createdById`. The rules intentionally reject client-side ownership changes.
 
-### Map is blank
+### A waitlist action does not update
+Confirm that the Functions deployment matches the Android Firebase project and that the device has a valid entrant profile. Capacity and status checks run on the server, so a closed/full/duplicate entry correctly returns an error.
 
-Confirm `MAPS_API_KEY` is set, Maps SDK for Android is enabled, billing is active if required, and the package/SHA-1 restrictions match the installed APK.
-
-### Firebase authentication or Firestore requests fail
-
-Verify that:
-
-- `app/google-services.json` belongs to the intended project and package.
-- anonymous and email/password providers are enabled.
-- Firestore/Storage rules permit the expected operation.
-- required compound indexes exist.
-- the device has network access.
-
-### Callable Function is not found
-
-Deploy the functions to the same Firebase project referenced by the Android client:
-
-```bash
-npm run deploy --prefix functions
-```
-
-If functions are deployed outside the default region, configure the Android `FirebaseFunctions` instance with that region.
+### Maps are blank
+Verify `MAPS_API_KEY`, Maps SDK enablement, billing requirements, Android package/SHA-1 restrictions, and network connectivity.
 
 ## Attribution
-
-The migrated source originated in the CMPUT 301 Fall 2025 Binary 1 project. Original contributors are listed in [`docs/team.txt`](docs/team.txt). No license file was present in the source repository; add an explicit license before distributing or accepting third-party contributions.
+Ticketjack was migrated from the CMPUT 301 Fall 2025 Binary 1 project. Original contributors are retained in `docs/team.txt`. No license is currently supplied; add one before distributing the application or accepting third-party contributions.

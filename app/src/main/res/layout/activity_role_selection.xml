@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_gray_background"
+    android:background="@color/ticketjack_surface"
     android:fitsSystemWindows="true"
     android:fillViewport="true">
 
@@ -27,18 +27,17 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             android:gravity="center"
-            android:text="@string/what_type_of_account_do_you_want_to_make"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="@color/black"/>
+            android:text="@string/choose_your_path"
+            android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+            android:textColor="@color/ticketjack_on_surface"/>
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cardEntrant"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp"
+            app:cardCornerRadius="@dimen/ticketjack_card_radius"
+            app:cardElevation="2dp"
             app:cardBackgroundColor="@color/entrant_blue_bg"
 
             android:clickable="true"

@@ -338,35 +338,23 @@ public class SamplingReplacementFragment extends Fragment {
             return;
         }
 
-        repository.sampleAttendees(eventId, 1,
-                new EventRepository.EventTaskCallback() {
-                    @Override
-                    public void onSuccess() {
-                        if (getContext() == null) return;
-
-                        // Mark this cancelled entrant as already handled so it disappears
-                        FirebaseFirestore.getInstance()
-                                .collection("events")
-                                .document(eventId)
-                                .collection("selected")
-                                .document(cancelledEntrantId)
-                                .update("replacementDrawn", true);
-
-                        Toast.makeText(getContext(),
-                                "Replacement drawn for cancelled entrant.",
-                                Toast.LENGTH_LONG).show();
-
-                        loadSelectedParticipants(0);
-                        loadReplacementPool();
-                    }
-
-                    @Override
-                    public void onError(String message) {
-                        if (getContext() == null) return;
-                        Toast.makeText(getContext(),
-                                "Failed to draw replacement: " + message,
-                                Toast.LENGTH_LONG).show();
-                    }
+        Map<String, Object> data = new HashMap<>();
+        data.put("eventId", eventId);
+        data.put("cancelledEntrantId", cancelledEntrantId);
+        functions.getHttpsCallable("drawReplacement").call(data)
+                .addOnSuccessListener(result -> {
+                    if (getContext() == null) return;
+                    Toast.makeText(getContext(),
+                            "Replacement drawn for cancelled entrant.",
+                            Toast.LENGTH_LONG).show();
+                    loadSelectedParticipants(0);
+                    loadReplacementPool();
+                })
+                .addOnFailureListener(e -> {
+                    if (getContext() == null) return;
+                    Toast.makeText(getContext(),
+                            "Failed to draw replacement: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
                 });
     }
 }

@@ -1,0 +1,36 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function activeAccount() {
+      return signedIn()
+        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.isActive != false
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.roleActive != false;
+    }
+
+    function isAdmin() {
+      return activeAccount()
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    function managesEvent(eventId) {
+      let event = firestore.get(/databases/(default)/documents/events/$(eventId)).data;
+      return isAdmin()
+        || (activeAccount()
+          && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == "organizer"
+          && (event.organizerId == request.auth.uid || event.createdById == request.auth.uid));
+    }
+
+    match /event_posters/{eventId}/{fileName} {
+      allow read: if signedIn();
+      allow create, update: if managesEvent(eventId)
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches("image/.*");
+      allow delete: if managesEvent(eventId);
+    }
+  }
+}

@@ -1,18 +1,13 @@
 package com.example.fairchance.ui.fragments;
 
 import android.app.AlertDialog;
-import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.OpenableColumns;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
@@ -31,8 +26,6 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.timepicker.MaterialTimePicker;
 import com.google.android.material.timepicker.TimeFormat;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -54,7 +47,7 @@ import java.util.Locale;
 public class CreateNewEventFragment extends Fragment {
 
     private ImageView ivEventPoster;
-    private TextInputEditText etEventName, etEventDescription, etEventTimeLocation;
+    private TextInputEditText etEventName, etEventDescription, etEventTimeLocation, etCapacity;
     private TextInputEditText etRegistrationDates, etRegistrationTimes;
     private CheckBox cbGeolocation, cbWaitlistLimit;
     private Button btnGenerateQRCode, btnCreateEvent;
@@ -67,7 +60,6 @@ public class CreateNewEventFragment extends Fragment {
     private Date registrationStart, registrationEnd;
     private Long waitlistLimit = null;
     private Uri posterUri = null;
-    private String uploadedPosterUrl = null;
 
     private final SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
     private final SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
@@ -115,6 +107,7 @@ public class CreateNewEventFragment extends Fragment {
         etEventName           = view.findViewById(R.id.etEventName);
         etEventDescription    = view.findViewById(R.id.etEventDescription);
         etEventTimeLocation   = view.findViewById(R.id.etEventTimeLocation);
+        etCapacity            = view.findViewById(R.id.etCapacity);
         etRegistrationDates   = view.findViewById(R.id.etRegistrationDates);
         etRegistrationTimes   = view.findViewById(R.id.etRegistrationTimes);
         cbGeolocation         = view.findViewById(R.id.cbGeolocation);
@@ -274,6 +267,7 @@ public class CreateNewEventFragment extends Fragment {
         String name         = s(etEventName);
         String desc         = s(etEventDescription);
         String timeLocation = s(etEventTimeLocation);
+        String capacityText = s(etCapacity);
         String eventDateStr = s(etEventDate);
         String category     = s(etCategory);
         String guidelines   = s(etGuidelines);
@@ -285,6 +279,21 @@ public class CreateNewEventFragment extends Fragment {
         }
         if (TextUtils.isEmpty(desc)) {
             etEventDescription.setError("Required");
+            return;
+        }
+        if (TextUtils.isEmpty(timeLocation)) {
+            etEventTimeLocation.setError("Required");
+            return;
+        }
+        int capacity;
+        try {
+            capacity = Integer.parseInt(capacityText);
+        } catch (NumberFormatException error) {
+            etCapacity.setError("Enter a valid capacity");
+            return;
+        }
+        if (capacity < 1 || capacity > 10000) {
+            etCapacity.setError("Capacity must be between 1 and 10,000");
             return;
         }
         if (TextUtils.isEmpty(eventDateStr)) {
@@ -313,6 +322,10 @@ public class CreateNewEventFragment extends Fragment {
             Toast.makeText(requireContext(), "End must be after start.", Toast.LENGTH_SHORT).show();
             return;
         }
+        if (dateFmt.format(parsedEventDate).compareTo(dateFmt.format(registrationEnd)) < 0) {
+            etEventDate.setError("Event date must be after registration closes");
+            return;
+        }
 
         Event event = new Event();
         event.setOrganizerId(FirebaseAuth.getInstance().getCurrentUser() != null
@@ -320,6 +333,7 @@ public class CreateNewEventFragment extends Fragment {
         event.setName(name);
         event.setDescription(desc);
         event.setLocation(timeLocation);
+        event.setCapacity(capacity);
         event.setRegistrationStart(registrationStart);
         event.setRegistrationEnd(registrationEnd);
         event.setGeolocationRequired(geoRequired);
@@ -336,48 +350,7 @@ public class CreateNewEventFragment extends Fragment {
             event.setWaitingListLimit(waitlistLimit);
         }
 
-        if (posterUri != null) {
-            uploadPosterThenCreate(event);
-        } else {
-            createEvent(event);
-        }
-    }
-
-    /**
-     * Uploads the selected poster image to Firebase Storage.
-     * On success, retrieves the download URL, sets it on the Event object,
-     * and proceeds to save the event to Firestore.
-     *
-     * @param event The Event object with metadata populated.
-     */
-    private void uploadPosterThenCreate(Event event) {
-        try {
-            String ext = getExtFromUri(posterUri);
-            String fileName = "poster_" + System.currentTimeMillis() + (ext != null ? ("." + ext) : "");
-            StorageReference ref = FirebaseStorage.getInstance()
-                    .getReference("event_posters")
-                    .child(FirebaseAuth.getInstance().getUid() == null ? "unknown" : FirebaseAuth.getInstance().getUid())
-                    .child(fileName);
-
-            ref.putFile(posterUri)
-                    .continueWithTask(task -> {
-                        if (!task.isSuccessful()) throw task.getException();
-                        return ref.getDownloadUrl();
-                    })
-                    .addOnSuccessListener(uri -> {
-                        uploadedPosterUrl = uri.toString();
-                        event.setPosterImageUrl(uploadedPosterUrl);
-                        createEvent(event);
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(requireContext(), "Poster upload failed, creating event without image.", Toast.LENGTH_LONG).show();
-                        createEvent(event);
-                    });
-
-        } catch (Exception e) {
-            Toast.makeText(requireContext(), "Poster upload error, creating event without image.", Toast.LENGTH_LONG).show();
-            createEvent(event);
-        }
+        createEvent(event);
     }
 
     /**
@@ -387,12 +360,29 @@ public class CreateNewEventFragment extends Fragment {
      * @param event The fully populated Event object.
      */
     private void createEvent(Event event) {
+        Uri posterToUpload = posterUri;
         btnCreateEvent.setEnabled(false);
         repo.createEvent(event, new EventRepository.EventTaskCallback() {
             @Override public void onSuccess() {
-                btnCreateEvent.setEnabled(true);
-                Toast.makeText(requireContext(), "Event created!", Toast.LENGTH_SHORT).show();
-                clearForm();
+                if (posterToUpload == null) {
+                    finishEventCreation();
+                    return;
+                }
+
+                repo.uploadPosterAndUpdate(event.getEventId(), posterToUpload,
+                        new EventRepository.EventTaskCallback() {
+                            @Override public void onSuccess() {
+                                finishEventCreation();
+                            }
+
+                            @Override public void onError(String message) {
+                                btnCreateEvent.setEnabled(true);
+                                Toast.makeText(requireContext(),
+                                        "Event created, but its poster could not be uploaded: " + message,
+                                        Toast.LENGTH_LONG).show();
+                                clearForm();
+                            }
+                        });
             }
             @Override public void onError(String message) {
                 btnCreateEvent.setEnabled(true);
@@ -400,17 +390,22 @@ public class CreateNewEventFragment extends Fragment {
             }
         });
     }
+    private void finishEventCreation() {
+        btnCreateEvent.setEnabled(true);
+        Toast.makeText(requireContext(), "Event created!", Toast.LENGTH_SHORT).show();
+        clearForm();
+    }
 
     /**
      * Resets the UI form to its default state after a successful event creation.
      */
     private void clearForm() {
         posterUri = null;
-        uploadedPosterUrl = null;
         ivEventPoster.setImageResource(android.R.drawable.ic_menu_gallery);
         etEventName.setText("");
         etEventDescription.setText("");
         etEventTimeLocation.setText("");
+        etCapacity.setText("");
         etRegistrationDates.setText("");
         etRegistrationTimes.setText("");
         etEventDate.setText("");
@@ -435,39 +430,4 @@ public class CreateNewEventFragment extends Fragment {
         return et.getText() == null ? "" : et.getText().toString().trim();
     }
 
-    /**
-     * Helper to determine the file extension from a generic URI (content or file).
-     *
-     * @param uri The URI of the selected file.
-     * @return The file extension string (e.g., "jpg", "png") or null.
-     */
-    private String getExtFromUri(Uri uri) {
-        try {
-            ContentResolver cr = requireContext().getContentResolver();
-            String type = cr.getType(uri);
-            if (type != null) return MimeTypeMap.getSingleton().getExtensionFromMimeType(type);
-            String name = queryDisplayName(uri);
-            int dot = name.lastIndexOf('.');
-            return dot >= 0 ? name.substring(dot + 1) : null;
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    /**
-     * Helper to query the display name of a file from a content URI.
-     *
-     * @param uri The content URI.
-     * @return The display name or "file" if not found.
-     */
-    private String queryDisplayName(Uri uri) {
-        try (android.database.Cursor c = requireContext().getContentResolver()
-                .query(uri, null, null, null, null)) {
-            if (c != null && c.moveToFirst()) {
-                int idx = c.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                if (idx >= 0) return c.getString(idx);
-            }
-        }
-        return "file";
-    }
 }

@@ -13,6 +13,8 @@ import java.util.Date;
 public class Event {
 
     private String organizerId;
+    private String createdById;
+    private String createdByName;
     private String name;
     private String description;
     private String posterImageUrl;
@@ -27,14 +29,13 @@ public class Event {
     private String category;
     private String location;
 
-    @Exclude
     private String organizerName;
-
-    @Exclude
     private String eventId;
 
     @ServerTimestamp
     private Date timeCreated;
+    @ServerTimestamp
+    private Date createdAt;
 
     public Event() {
     }
@@ -45,6 +46,21 @@ public class Event {
 
     public void setOrganizerId(String organizerId) {
         this.organizerId = organizerId;
+    }
+    public String getCreatedById() {
+        return createdById;
+    }
+
+    public void setCreatedById(String createdById) {
+        this.createdById = createdById;
+    }
+
+    public String getCreatedByName() {
+        return createdByName;
+    }
+
+    public void setCreatedByName(String createdByName) {
+        this.createdByName = createdByName;
     }
 
     public String getName() {
@@ -160,7 +176,6 @@ public class Event {
         this.organizerName = organizerName;
     }
 
-    @Exclude
     public String getEventId() {
         return eventId;
     }
@@ -175,5 +190,13 @@ public class Event {
 
     public void setTimeCreated(Date timeCreated) {
         this.timeCreated = timeCreated;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 }

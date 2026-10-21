@@ -18,8 +18,8 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Run Android JVM tests
-        run: ./gradlew testDebugUnitTest
+      - name: Run Android validation
+        run: ./gradlew testDebugUnitTest lintDebug assembleDebug
 
   functions:
     runs-on: ubuntu-latest
@@ -37,5 +37,7 @@ jobs:
           cache-dependency-path: functions/package-lock.json
       - name: Install function dependencies
         run: npm ci
-      - name: Check function syntax
+      - name: Test function workflows
         run: npm test
+      - name: Audit production dependencies
+        run: npm audit --omit=dev

@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/ticketjack_surface"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -9,8 +10,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Chosen Entrants"
-        android:textSize="24sp"
-        android:textStyle="bold"
+        android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium"
+        android:textColor="@color/ticketjack_on_surface"
         android:layout_marginBottom="16dp" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -27,6 +28,7 @@
 
         <Button
             android:id="@+id/btnSendNotification"
+            style="@style/Widget.Ticketjack.Button.Primary"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
@@ -35,12 +37,13 @@
 
         <Button
             android:id="@+id/btnCancelPending"
+            style="@style/Widget.Ticketjack.Button.Primary"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="Cancel Pending"
-            android:backgroundTint="@android:color/holo_red_light"
-            android:textColor="@android:color/white"
+            android:backgroundTint="@color/ticketjack_error"
+            android:textColor="@color/white"
             android:layout_marginStart="4dp"/>
 
     </LinearLayout>

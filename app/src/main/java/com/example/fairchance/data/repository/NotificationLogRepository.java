@@ -18,10 +18,6 @@ public class NotificationLogRepository {
 
     private static final String TAG = "NotificationLogRepo";
 
-    public interface LogWriteCallback {
-        void onSuccess();
-        void onError(String message);
-    }
 
     public interface LogListCallback {
         void onSuccess(List<NotificationLog> logs);
@@ -36,32 +32,6 @@ public class NotificationLogRepository {
         logsRef = db.collection("notificationLogs");
     }
 
-    /**
-     * Writes a new notification log document.
-     */
-    public void logNotification(NotificationLog log, LogWriteCallback callback) {
-        if (log.getTimestamp() == null) {
-            log.setTimestamp(new Date());
-        }
-        if (log.getRecipientIds() != null) {
-            log.setRecipientCount(log.getRecipientIds().size());
-        }
-
-        logsRef.add(log)
-                .addOnSuccessListener(docRef -> {
-                    log.setId(docRef.getId());
-                    docRef.update("id", docRef.getId());
-                    if (callback != null) {
-                        callback.onSuccess();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error writing notification log", e);
-                    if (callback != null) {
-                        callback.onError(e.getMessage());
-                    }
-                });
-    }
 
     /**
      * Fetches all logs ordered by newest first.

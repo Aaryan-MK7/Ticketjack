@@ -8,6 +8,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.functions.FirebaseFunctions;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -111,57 +112,16 @@ public class AdminImageRepository {
      * Deletes image from Storage, clears poster reference in event,
      * and logs the removal to Firestore.
      */
-    public void deleteImage(@NonNull AdminImageItem item,
-                            String adminUserId,
-                            @NonNull TaskCallback callback) {
+    public void deleteImage(@NonNull AdminImageItem item, @NonNull TaskCallback callback) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("eventId", item.getId());
+        data.put("imageUrl", item.getImageUrl());
 
-        String imageUrl = item.getImageUrl();
-        if (imageUrl == null || imageUrl.isEmpty()) {
-            callback.onError("Image URL is empty.");
-            return;
-        }
-
-        final StorageReference ref;
-        try {
-            ref = storage.getReferenceFromUrl(imageUrl);
-        } catch (IllegalArgumentException ex) {
-            callback.onError("Invalid storage URL.");
-            return;
-        }
-
-        ref.delete()
-                .addOnSuccessListener(aVoid -> {
-
-                    Map<String, Object> updates = new HashMap<>();
-                    updates.put("posterImageUrl", null);
-                    updates.put("imageUrl", null);
-                    updates.put("bannerUrl", null);
-                    updates.put("thumbnailUrl", null);
-
-                    db.collection("events")
-                            .document(item.getId())
-                            .update(updates);
-
-                    Map<String, Object> log = new HashMap<>();
-                    log.put("eventId", item.getId());
-                    log.put("eventName", item.getTitle());
-                    log.put("imageUrl", item.getImageUrl());
-                    log.put("removedByUserId", adminUserId);
-                    log.put("removedAt", Timestamp.now());
-
-                    db.collection("imageRemovalLogs")
-                            .add(log)
-                            .addOnCompleteListener(task -> {
-                                if (!task.isSuccessful()) {
-                                    Log.w(TAG, "Failed to log image removal",
-                                            task.getException());
-                                }
-                                callback.onSuccess();
-                            });
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error deleting image", e);
-                    callback.onError(e.getMessage());
+        FirebaseFunctions.getInstance().getHttpsCallable("removeEventPoster").call(data)
+                .addOnSuccessListener(result -> callback.onSuccess())
+                .addOnFailureListener(error -> {
+                    Log.e(TAG, "Error removing image", error);
+                    callback.onError(error.getMessage());
                 });
     }
 }

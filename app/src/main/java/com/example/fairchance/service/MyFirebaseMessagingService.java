@@ -11,7 +11,6 @@ import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import com.example.fairchance.R;
 import com.example.fairchance.data.repository.AuthRepository;
-import com.example.fairchance.data.repository.EventRepository;
 import com.example.fairchance.ui.MainActivity;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -48,23 +47,16 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
             String eventId = remoteMessage.getData().get("eventId");
             String status = remoteMessage.getData().get("status");
+            String notificationType = remoteMessage.getData().get("notificationType");
 
             title = remoteMessage.getData().get("title");
             body = remoteMessage.getData().get("body");
 
-            // Update event history if needed
-            if (eventId != null && status != null) {
-                AuthRepository authRepository = new AuthRepository();
-                if (authRepository.getCurrentUser() != null) {
-                    new EventRepository().updateEventHistoryStatus(eventId, status, new EventRepository.EventTaskCallback() {
-                        @Override public void onSuccess() { }
-                        @Override public void onError(String message) { }
-                    });
-                }
-
-                if ("Selected".equalsIgnoreCase(status)) {
-                    navTarget = "NAV_TO_INVITATIONS";
-                }
+            // Authoritative invitation status is written by Cloud Functions.
+            // This process only routes the notification; it never mutates Firestore.
+            if (eventId != null && ("selection".equals(notificationType)
+                    || "Selected".equalsIgnoreCase(status))) {
+                navTarget = "NAV_TO_INVITATIONS";
             }
 
             // Prefer notification payload if provided
