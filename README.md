@@ -1,6 +1,6 @@
 # Ticketjack
 
-[![Project preview](https://github.com/Aaryan-MK7/Ticketjack/actions/workflows/project-preview.yml/badge.svg)](https://aaryan-mk7.github.io/Ticketjack/)
+[![Project preview](https://img.shields.io/website?url=https%3A%2F%2Faaryan-mk7.github.io%2FTicketjack%2F&label=project%20preview)](https://aaryan-mk7.github.io/Ticketjack/)
 
 **[Open the public project preview →](https://aaryan-mk7.github.io/Ticketjack/)**
 
