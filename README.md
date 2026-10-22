@@ -6,6 +6,14 @@
 
 Ticketjack is an Android application for fair, lottery-based event registration. Instead of rewarding the fastest person to refresh a screen, entrants join an open waiting list; organizers run a transparent draw; selected entrants accept or decline; and the system can draw replacements when needed.
 
+## Demo delivery
+Ticketjack is a native Android application, so the browser link above is a walkthrough rather than the application runtime.
+
+- Every validation run builds an installable debug APK and retains it as the `ticketjack-debug-apk` workflow artifact for 14 days.
+- Version tags matching `v*` publish the validated APK as a durable [GitHub Release](https://github.com/Aaryan-MK7/Ticketjack/releases).
+- The APK connects to the Firebase project identified by `app/google-services.json`. A working backend requires that project's Authentication, Firestore, Storage, Cloud Messaging, rules, indexes, and callable Functions to be provisioned.
+- Deploying Firebase Functions requires a billing-enabled Firebase project even when usage remains within no-cost quotas. The repository does not enable billing automatically and does not claim the backend is live until deployment is verified.
+
 The app supports three roles:
 
 - **Entrants** discover events, scan event QR codes, join waiting lists, receive and respond to invitations, review history, and control notification preferences.
@@ -248,6 +256,8 @@ firebase emulators:start --only auth,firestore,storage,functions
 ```
 
 Do not run destructive moderation or integration tests against production data.
+
+The manual `Deploy Ticketjack Firebase Backend` workflow performs the same validated deployment. Configure the `FIREBASE_SERVICE_ACCOUNT` secret in the protected `firebase-production` GitHub environment and require reviewer approval before running it. The workflow never changes the Firebase billing plan.
 
 ## Development and verification
 ### Android

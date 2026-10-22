@@ -1,0 +1,31 @@
+name: Deploy Ticketjack Firebase Backend
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: firebase-production
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - name: Install function dependencies
+        run: npm ci --prefix functions
+      - name: Validate function workflows
+        run: npm test --prefix functions
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      - name: Deploy Firebase rules, indexes, and functions
+        run: npx --yes firebase-tools@15.34.1 deploy --project fair-chance-a2e9c --non-interactive
