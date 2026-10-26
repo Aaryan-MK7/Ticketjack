@@ -1,14 +1,15 @@
 # Ticketjack
 
-[![Project preview](https://img.shields.io/website?url=https%3A%2F%2Faaryan-mk7.github.io%2FTicketjack%2F&label=project%20preview)](https://aaryan-mk7.github.io/Ticketjack/)
+[![Interactive demo](https://img.shields.io/website?url=https%3A%2F%2Faaryan-mk7.github.io%2FTicketjack%2F&label=interactive%20demo)](https://aaryan-mk7.github.io/Ticketjack/)
 
-**[Open the public project preview →](https://aaryan-mk7.github.io/Ticketjack/)**
+**[Open the public interactive demo →](https://aaryan-mk7.github.io/Ticketjack/)**
 
 Ticketjack is an Android application for fair, lottery-based event registration. Instead of rewarding the fastest person to refresh a screen, entrants join an open waiting list; organizers run a transparent draw; selected entrants accept or decline; and the system can draw replacements when needed.
 
 ## Demo delivery
-Ticketjack is a native Android application, so the browser link above is a walkthrough rather than the application runtime.
+The browser link above is a functional, browser-local Ticketjack demo. It supports entrant discovery and invitations, organizer draws and participant management, administrator moderation, persistent local state, and resettable seeded data across responsive desktop and mobile layouts.
 
+- The interactive demo does not contact Firebase and is not the native Android runtime. Its disclosure and reset controls keep that boundary visible.
 - Every validation run builds an installable debug APK and retains it as the `ticketjack-debug-apk` workflow artifact for 14 days.
 - Version tags matching `v*` publish the validated APK as a durable [GitHub Release](https://github.com/Aaryan-MK7/Ticketjack/releases).
 - The APK connects to the Firebase project identified by `app/google-services.json`. A working backend requires that project's Authentication, Firestore, Storage, Cloud Messaging, rules, indexes, and callable Functions to be provisioned.

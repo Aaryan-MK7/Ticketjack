@@ -3,53 +3,59 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Ticketjack project preview — fair, lottery-based event registration.">
-  <title>Ticketjack — Project Preview</title>
-  <style>
-    :root { --ink:#191a1c; --muted:#64666b; --paper:#fffdf7; --cream:#f4f0e7; --green:#84f59f; --blue:#8db8f5; --yellow:#ffd85a; --line:#1c1d20; --max:1120px; }
-    * { box-sizing:border-box; } body { margin:0; overflow-x:hidden; background:var(--paper); color:var(--ink); font:16px/1.5 ui-sans-serif,system-ui,sans-serif; }
-    a { color:inherit; } .shell { width:min(calc(100% - 2rem),var(--max)); margin:auto; }
-    nav { display:flex; align-items:center; justify-content:space-between; padding:1rem 0; border-bottom:2px solid var(--line); }
-    .brand { display:flex; align-items:center; gap:.55rem; font-weight:900; letter-spacing:-.03em; } .brand img { width:2.4rem; height:2.4rem; object-fit:contain; }
-    .repo { padding:.6rem .85rem; border:2px solid var(--line); border-radius:999px; text-decoration:none; font-size:.75rem; font-weight:800; box-shadow:3px 3px 0 var(--line); }
-    header { display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center; padding:4.5rem 0; }
-    .eyebrow { font:800 .7rem/1 ui-monospace,monospace; letter-spacing:.12em; text-transform:uppercase; }
-    h1 { margin:.75rem 0 1.25rem; font-size:clamp(3.5rem,8vw,7.2rem); line-height:.84; letter-spacing:-.075em; }
-    .lede { max-width:43ch; color:var(--muted); font-size:1.1rem; }
-    .note { margin-top:1.5rem; padding:1rem; border:2px solid var(--line); background:var(--yellow); font-size:.78rem; font-weight:650; transform:rotate(-1deg); box-shadow:5px 5px 0 var(--line); }
-    .phones { display:flex; justify-content:center; align-items:center; min-height:37rem; }
-    .phone { width:17.5rem; min-height:35rem; padding:.65rem; border:3px solid var(--line); border-radius:2.2rem; background:var(--ink); box-shadow:12px 14px 0 #2324291c; }
-    .phone.back { margin-right:-4rem; transform:rotate(-7deg) translateY(1rem); } .phone.front { z-index:1; transform:rotate(4deg); }
-    .screen { min-height:33.3rem; padding:1.2rem; border-radius:1.55rem; background:var(--paper); overflow:hidden; }
-    .mobile-top { display:flex; justify-content:space-between; font-size:.62rem; font-weight:800; }
-    .screen h2 { margin:1.4rem 0 .25rem; font-size:1.7rem; line-height:1; letter-spacing:-.05em; } .screen p { margin:.4rem 0 1rem; color:var(--muted); font-size:.68rem; }
-    .event { padding:.8rem; border:2px solid var(--line); border-radius:.8rem; background:white; box-shadow:3px 3px 0 var(--line); margin:1rem 0; }
-    .poster { height:8rem; display:grid; place-items:center; border:2px solid var(--line); border-radius:.55rem; background:linear-gradient(135deg,var(--blue),var(--green)); font-size:2.8rem; }
-    .event h3 { margin:.65rem 0 .15rem; font-size:.9rem; } .meta { display:flex; justify-content:space-between; font-size:.55rem; }
-    .action { display:block; width:100%; padding:.65rem; border:2px solid var(--line); border-radius:999px; background:var(--green); text-align:center; font-size:.67rem; font-weight:900; }
-    .metric { display:flex; justify-content:space-between; align-items:center; padding:.75rem; border-bottom:1px solid #bbb; font-size:.68rem; } .metric b { font-size:1.2rem; }
-    .draw { margin-top:1rem; padding:1rem; border:2px solid var(--line); border-radius:.8rem; background:var(--blue); } .draw strong { display:block; font-size:1rem; }
-    section { padding:4rem 0; border-top:2px solid var(--line); background:var(--cream); }
-    section h2 { margin:0 0 2rem; font-size:clamp(2.3rem,5vw,4rem); line-height:.95; letter-spacing:-.055em; }
-    .journeys { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
-    .card { padding:1.25rem; border:2px solid var(--line); border-radius:.9rem; background:var(--paper); box-shadow:5px 5px 0 var(--line); } .card:nth-child(2){background:var(--green)} .card:nth-child(3){background:var(--blue)}
-    .card span { font:800 .65rem ui-monospace,monospace; } .card h3 { margin:.65rem 0 .4rem; } .card p { margin:0; font-size:.78rem; }
-    footer { display:flex; justify-content:space-between; padding:2rem 0; font-size:.72rem; color:var(--muted); }
-    @media(max-width:800px){header{grid-template-columns:minmax(0,1fr);padding:3rem 0}header>*{min-width:0}h1{font-size:3.2rem}.phones{width:100%;min-height:31rem}.phone{width:13.5rem;min-height:29rem}.screen{min-height:27.4rem}.phone.back{margin-right:-8rem}.poster{height:6rem}.journeys{grid-template-columns:1fr}}
-  </style>
+  <meta name="description" content="Interactive Ticketjack demo for entrants, organizers, and administrators.">
+  <meta name="theme-color" content="#17191c">
+  <title>Ticketjack — Interactive Demo</title>
+  <link rel="icon" href="ticketjack-mark.png">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <nav class="shell"><div class="brand"><img src="ticketjack-mark.png" alt="">Ticketjack</div><a class="repo" href="https://github.com/Aaryan-MK7/Ticketjack">View source ↗</a></nav>
-  <main>
-    <header class="shell">
-      <div><p class="eyebrow">Project preview · Android application</p><h1>A fair shot at every ticket.</h1><p class="lede">Ticketjack replaces first-come-first-served event registration with open waiting lists and transparent, capacity-aware lottery draws.</p><div class="note">Static product walkthrough — not an installable Android build. Live authentication, lottery operations, notifications, and data persistence require the configured Firebase application.</div></div>
-      <div class="phones" aria-label="Representative Ticketjack mobile screens">
-        <div class="phone back"><div class="screen"><div class="mobile-top"><span>9:41</span><span>● ● ●</span></div><h2>Organizer</h2><p>Manage capacity and run a fair draw.</p><div class="metric"><span>Waiting list</span><b>84</b></div><div class="metric"><span>Capacity</span><b>25</b></div><div class="metric"><span>Confirmed</span><b>19</b></div><div class="draw"><strong>Draw attendees</strong><p>Selection is server-authoritative and bounded by event capacity.</p><span class="action">Run fair draw</span></div></div></div>
-        <div class="phone front"><div class="screen"><div class="mobile-top"><span>9:41</span><span>● ● ●</span></div><h2>Discover</h2><p>Open events near you.</p><article class="event"><div class="poster">♫</div><h3>River Valley Sessions</h3><div class="meta"><span>FRI · 7 PM</span><span>25 spots</span></div><p>Join while registration is open. Entry order does not affect selection.</p><span class="action">Join waiting list</span></article></div></div>
+  <a class="skip-link" href="#demo-main">Skip to demo</a>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Ticketjack demo home">
+        <img src="ticketjack-mark.png" alt="">
+        <span>Ticketjack</span>
+        <small>interactive demo</small>
+      </a>
+      <div class="topbar-actions">
+        <span class="local-state"><span aria-hidden="true"></span> Browser-local demo</span>
+        <button class="icon-action" id="reset-demo" type="button" title="Reset demo data">Reset</button>
+        <a class="icon-action" href="https://github.com/Aaryan-MK7/Ticketjack">Source ↗</a>
       </div>
     </header>
-    <section><div class="shell"><p class="eyebrow">One trusted lifecycle</p><h2>Designed for every side of the draw.</h2><div class="journeys"><article class="card"><span>01 · ENTRANTS</span><h3>Discover and enter</h3><p>Browse events, scan QR codes, join waiting lists, and respond to invitations.</p></article><article class="card"><span>02 · ORGANIZERS</span><h3>Draw and coordinate</h3><p>Set capacity, sample eligible entrants, manage responses, and draw replacements.</p></article><article class="card"><span>03 · ADMINISTRATORS</span><h3>Moderate responsibly</h3><p>Review profiles, events, posters, organizers, and notification audit records.</p></article></div></div></section>
-  </main>
-  <footer class="shell"><span>Ticketjack · Project preview</span><a href="https://github.com/Aaryan-MK7/Ticketjack">Repository ↗</a></footer>
+    <section class="role-switcher" aria-label="Demo role">
+      <div>
+        <span class="role-label">Explore as</span>
+        <div class="role-tabs" role="tablist" aria-label="Application role">
+          <button data-role="entrant" role="tab" type="button">Entrant</button>
+          <button data-role="organizer" role="tab" type="button">Organizer</button>
+          <button data-role="admin" role="tab" type="button">Administrator</button>
+        </div>
+      </div>
+      <p id="role-context"></p>
+    </section>
+    <div class="workspace">
+      <aside class="sidebar" aria-label="Application navigation">
+        <div class="profile-chip" id="profile-chip"></div>
+        <nav id="app-navigation"></nav>
+        <div class="sidebar-note">
+          <strong>Safe demo mode</strong>
+          <span>Actions update only this browser. Reset at any time.</span>
+        </div>
+      </aside>
+      <main id="demo-main" tabindex="-1">
+        <div id="app-view" aria-live="polite"></div>
+      </main>
+    </div>
+  </div>
+  <dialog id="detail-dialog" class="detail-dialog">
+    <div id="dialog-content"></div>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <noscript>
+    <div class="noscript">Ticketjack’s interactive demo requires JavaScript.</div>
+  </noscript>
+  <script src="app.js" defer></script>
 </body>
 </html>
